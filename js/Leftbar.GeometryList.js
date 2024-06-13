@@ -29,7 +29,16 @@ function LeftbarGeometryList(editor) {
   flexListbox.setItems([
     { name: "正方体" },
     { name: "胶囊" },
-    { id: "circle", name: "圆", type: "geometry" },
+    {
+      id: 32,
+      name: "圆形缓冲几何体",
+      modelType: "geometry",
+      type: "CircleGeometry",
+      radius: 0.5, // 半径
+      segments: 32, //分段（三角面）的数量
+      thetaStart: 0, // 第一个分段的起始角度
+      thetaLength: 6.44, //圆形扇区的中心角
+    },
   ]);
   container.add(flexListbox);
 

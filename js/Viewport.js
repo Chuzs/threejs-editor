@@ -182,6 +182,7 @@ function Viewport(editor) {
   function handleClick() {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
+      console.log(intersects);
       signals.intersectionsDetected.dispatch(intersects);
 
       render();
@@ -250,13 +251,61 @@ function Viewport(editor) {
     const { clientX, clientY } = event;
     // console.log(dragType)
     // 如果是几何体模型拖拽
-    if (dragModel.id && dragModel.type == "geometry") {
+    if (dragModel.id && dragModel.modelType == "geometry") {
       dragModel.clientX = clientX;
       dragModel.clientY = clientY;
+      addGeometry(dragModel);
+      //   const geometry = new THREE.CircleGeometry(1, 32, 0, Math.PI * 2);
+      //   const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+      //   mesh.name = "Circle";
 
-      const geometry = new THREE.CircleGeometry(1, 32, 0, Math.PI * 2);
-      const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
-      mesh.name = "Circle";
+      //   editor.execute(new AddObjectCommand(editor, mesh));
+    }
+  }
+
+  function addGeometry(model) {
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const { clientHeight, clientWidth, offsetLeft, offsetTop } =
+      renderer.domElement;
+    // 计算鼠标在屏幕上的坐标
+    mouse.x = ((model.clientX - offsetLeft) / clientWidth) * 2 - 1;
+    mouse.y = -((model.clientY - offsetTop) / clientHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, editor.camera);
+    const intersects = raycaster.intersectObjects(scene, true);
+    console.log(mouse, sceneHelpers);
+    console.log(intersects);
+    if (intersects.length > 0) {
+      // 在控制台输出鼠标在场景中的位置
+      const { type } = model;
+      // 不需要赋值的key
+      const notGeometrykey = ["id", "name", "modelType", "type"];
+      const geometryData = Object.keys(model)
+        .filter((key) => !notGeometrykey.includes(key))
+        .map((v) => model[v]);
+      // 创建几何体
+      const geometry = new THREE[type](...geometryData);
+      const colors = [
+        "#FF4500",
+        "#90EE90",
+        "#00CED1",
+        "#1E90FF",
+        "#C71585",
+        "#FF4500",
+        "#FAD400",
+        "#1F93FF",
+        "#90F090",
+        "#C71585",
+      ];
+      // 随机颜色
+      const meshColor = colors[Math.ceil(Math.random() * 10)];
+      const material = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(meshColor),
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      const { x, y, z } = intersects[0].point;
+      mesh.position.set(x, y, z);
 
       editor.execute(new AddObjectCommand(editor, mesh));
     }
