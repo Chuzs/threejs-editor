@@ -49,7 +49,8 @@ function MenubarAdd(editor) {
   meshSubmenuTitle.onMouseOut(function () {
     meshSubmenu.setDisplay("none");
   });
-  options.add(meshSubmenuTitle);
+  // 已改完拖拽添加
+  // options.add(meshSubmenuTitle);
 
   const meshSubmenu = new UIPanel()
     .setPosition("fixed")

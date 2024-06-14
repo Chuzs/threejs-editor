@@ -35,7 +35,6 @@ class Selector {
     this.editor.scene.traverseVisible(function (child) {
       objects.push(child);
     });
-    console.log(this.editor.sceneHelpers);
     this.editor.sceneHelpers.traverseVisible(function (child) {
       if (child.name === "picker") objects.push(child);
     });
@@ -49,6 +48,24 @@ class Selector {
     raycaster.setFromCamera(mouse, camera);
 
     return this.getIntersects(raycaster);
+  }
+
+  getDropPointerIntersects(point, camera) {
+    mouse.set(point.x * 2 - 1, -(point.y * 2) + 1);
+
+    raycaster.setFromCamera(mouse, camera);
+
+    return this.getDropIntersects(raycaster);
+  }
+
+  getDropIntersects(raycaster) {
+    const objects = [];
+
+    this.editor.sceneHelpers.traverseVisible(function (child) {
+      if (child.type === "GridHelper") objects.push(child);
+    });
+
+    return raycaster.intersectObjects(objects, false);
   }
 
   select(object) {

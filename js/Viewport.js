@@ -57,6 +57,7 @@ function Viewport(editor) {
   grid2.material.color.setHex(GRID_COLORS_LIGHT[1]);
   grid2.material.vertexColors = false;
   grid.add(grid2);
+  sceneHelpers.add(grid);
 
   const viewHelper = new ViewHelper(camera, container);
 
@@ -182,7 +183,6 @@ function Viewport(editor) {
   function handleClick() {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
-      console.log(intersects);
       signals.intersectionsDetected.dispatch(intersects);
 
       render();
@@ -247,11 +247,13 @@ function Viewport(editor) {
 
   function onDrop(event) {
     const dragModel = editor.dragModel;
-    const { clientX, clientY } = event;
+    const intersects = selector.getPointerIntersects(onUpPosition, camera);
+    console.log(intersects);
+    if (intersects.length > 0) {
+      dragModel.point = intersects[0].point;
+    }
     // 如果是几何体模型拖拽
     if (dragModel.modelType && dragModel.modelType == "geometry") {
-      dragModel.clientX = clientX;
-      dragModel.clientY = clientY;
       addGeometry(dragModel);
     } else {
       addModel(dragModel);
@@ -259,15 +261,6 @@ function Viewport(editor) {
   }
 
   function addGeometry(model) {
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    const { clientHeight, clientWidth, offsetLeft, offsetTop } =
-      renderer.domElement;
-    // 计算鼠标在屏幕上的坐标
-    mouse.x = ((model.clientX - offsetLeft) / clientWidth) * 2 - 1;
-    mouse.y = -((model.clientY - offsetTop) / clientHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, editor.camera);
-    const intersects = raycaster.intersectObjects(scene, true);
     const { type } = model;
     // 不需要赋值的key
     const notGeometrykey = ["id", "name", "modelType", "type"];
@@ -296,9 +289,9 @@ function Viewport(editor) {
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = model.name;
-    if (intersects.length > 0) {
+    if (model.point) {
       // 在控制台输出鼠标在场景中的位置
-      const { x, y, z } = intersects[0].point;
+      const { x, y, z } = model.point;
       mesh.position.set(x, y, z);
     }
     editor.execute(new AddObjectCommand(editor, mesh));

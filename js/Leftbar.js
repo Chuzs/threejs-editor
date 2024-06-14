@@ -10,13 +10,14 @@ function Leftbar(editor) {
   const geometryList = new LeftbarGeometryList(editor);
   const modelList = new LeftbarModelList(editor);
 
+  container.addTab("model", strings.getKey("leftbar/models"), modelList);
+
   container.addTab(
     "geometry",
     strings.getKey("leftbar/geometry"),
     geometryList
   );
-  container.addTab("model", strings.getKey("leftbar/models"), modelList);
-  container.select("geometry");
+  container.select("model");
   return container;
 }
 

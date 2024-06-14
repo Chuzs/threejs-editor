@@ -883,7 +883,8 @@ function Loader(editor) {
 
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath("../examples/jsm/libs/draco/gltf/");
-
+    dracoLoader.setDecoderConfig({ type: "js" });
+    dracoLoader.preload();
     const ktx2Loader = new KTX2Loader(manager);
     ktx2Loader.setTranscoderPath("../examples/jsm/libs/basis/");
 
