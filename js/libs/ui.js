@@ -938,6 +938,11 @@ class UITabbedPanel extends UIDiv {
   }
 }
 
+class UIImage extends UIElement {
+  constructor() {
+    super(document.createElement("img"));
+  }
+}
 class UITab extends UIText {
   constructor(text, parent) {
     super(text);
@@ -1089,8 +1094,17 @@ class UIFlexListbox extends UIDiv {
       const item = this.items[i];
 
       const listitem = new FlexListboxItem(this, item);
-      listitem.setId(item.id || `FlexListbox-${i}`);
-      listitem.setTextContent(item.name || item.type);
+      if (item.icon) {
+        const img = new UIImage();
+        img.dom.src = item.icon;
+        listitem.setId(item.id || `FlexListbox-${i}`);
+        listitem.add(img);
+      } else {
+        const div = new UIDiv();
+        div.setTextContent(item.name);
+        listitem.setId(item.id || `FlexListbox-${i}`);
+        listitem.add(div);
+      }
       this.add(listitem);
     }
   }
@@ -1136,8 +1150,6 @@ class FlexListboxItem extends UIDiv {
       event.preventDefault();
     }
     function onDragstart(event) {
-      console.log(scope.model);
-
       scope.parent.setValue(scope.model);
     }
 
@@ -1167,6 +1179,7 @@ export {
   UITabbedPanel,
   UIListbox,
   ListboxItem,
+  UIImage,
   UIFlexListbox,
   FlexListboxItem,
 };

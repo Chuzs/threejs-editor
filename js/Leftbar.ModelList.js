@@ -1,26 +1,16 @@
-import {
-  UIButton,
-  UICheckbox,
-  UIPanel,
-  UIInput,
-  UIRow,
-  UIText,
-} from "./libs/ui.js";
+import { modelList } from "../config/model.js";
+import { UIFlexListbox, UIPanel } from "./libs/ui.js";
 
 function LeftbarModelList(editor) {
-  const config = editor.config;
-  const signals = editor.signals;
-  const strings = editor.strings;
-
-  const save = editor.utils.save;
-
   const container = new UIPanel();
   container.setBorderTop("0");
-  container.setId("modelList");
+  container.setId("geometryList");
 
-  const headerRow = new UIRow();
-  headerRow.add(new UIText(strings.getKey("leftbar/models")));
-  container.add(headerRow);
+  const flexListbox = new UIFlexListbox().onChange((e) => {
+    editor.dragModel = flexListbox.getValue();
+  });
+  flexListbox.setItems(modelList);
+  container.add(flexListbox);
 
   return container;
 }

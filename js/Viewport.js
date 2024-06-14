@@ -247,19 +247,14 @@ function Viewport(editor) {
 
   function onDrop(event) {
     const dragModel = editor.dragModel;
-    console.log(dragModel);
     const { clientX, clientY } = event;
-    // console.log(dragType)
     // 如果是几何体模型拖拽
-    if (dragModel.id && dragModel.modelType == "geometry") {
+    if (dragModel.modelType && dragModel.modelType == "geometry") {
       dragModel.clientX = clientX;
       dragModel.clientY = clientY;
       addGeometry(dragModel);
-      //   const geometry = new THREE.CircleGeometry(1, 32, 0, Math.PI * 2);
-      //   const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
-      //   mesh.name = "Circle";
-
-      //   editor.execute(new AddObjectCommand(editor, mesh));
+    } else {
+      addModel(dragModel);
     }
   }
 
@@ -273,42 +268,44 @@ function Viewport(editor) {
     mouse.y = -((model.clientY - offsetTop) / clientHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, editor.camera);
     const intersects = raycaster.intersectObjects(scene, true);
-    console.log(mouse, sceneHelpers);
-    console.log(intersects);
+    const { type } = model;
+    // 不需要赋值的key
+    const notGeometrykey = ["id", "name", "modelType", "type"];
+    const geometryData = Object.keys(model)
+      .filter((key) => !notGeometrykey.includes(key))
+      .map((v) => model[v]);
+    // 创建几何体
+    const geometry = new THREE[type](...geometryData);
+    const colors = [
+      "#FF4500",
+      "#90EE90",
+      "#00CED1",
+      "#1E90FF",
+      "#C71585",
+      "#FF4500",
+      "#FAD400",
+      "#1F93FF",
+      "#90F090",
+      "#C71585",
+    ];
+    // 随机颜色
+    const meshColor = colors[Math.ceil(Math.random() * 10)];
+    const material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(meshColor),
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = model.name;
     if (intersects.length > 0) {
       // 在控制台输出鼠标在场景中的位置
-      const { type } = model;
-      // 不需要赋值的key
-      const notGeometrykey = ["id", "name", "modelType", "type"];
-      const geometryData = Object.keys(model)
-        .filter((key) => !notGeometrykey.includes(key))
-        .map((v) => model[v]);
-      // 创建几何体
-      const geometry = new THREE[type](...geometryData);
-      const colors = [
-        "#FF4500",
-        "#90EE90",
-        "#00CED1",
-        "#1E90FF",
-        "#C71585",
-        "#FF4500",
-        "#FAD400",
-        "#1F93FF",
-        "#90F090",
-        "#C71585",
-      ];
-      // 随机颜色
-      const meshColor = colors[Math.ceil(Math.random() * 10)];
-      const material = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(meshColor),
-        side: THREE.DoubleSide,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
       const { x, y, z } = intersects[0].point;
       mesh.position.set(x, y, z);
-
-      editor.execute(new AddObjectCommand(editor, mesh));
     }
+    editor.execute(new AddObjectCommand(editor, mesh));
+  }
+
+  function addModel(model) {
+    editor.loader.loadModel(model);
   }
 
   container.dom.addEventListener("drop", onDrop);
