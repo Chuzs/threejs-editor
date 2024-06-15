@@ -121,6 +121,8 @@ function Editor() {
   this.mixer = new THREE.AnimationMixer(this.scene);
 
   this.selected = null;
+
+  this.enableSelect = true;
   this.helpers = {};
 
   this.cameras = {};

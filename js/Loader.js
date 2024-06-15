@@ -46,7 +46,7 @@ function Loader(editor) {
     }
   };
 
-  this.loadFile = function (file, manager) {
+  this.loadFile = function (file, manager, model) {
     const filename = file.name;
     const extension = filename.split(".").pop().toLowerCase();
 
@@ -251,6 +251,9 @@ function Loader(editor) {
               scene.name = filename;
 
               scene.animations.push(...result.animations);
+              const { x, y, z } = model.point;
+              scene.position.set(x, y, z);
+              console.log(scene);
               editor.execute(new AddObjectCommand(editor, scene));
 
               loader.dracoLoader.dispose();
@@ -725,7 +728,7 @@ function Loader(editor) {
         const file = new File([blob], model.name + "." + model.fileType, {
           type: blob.type,
         });
-        this.loadFile(file);
+        this.loadFile(file, null, model);
       });
   };
 

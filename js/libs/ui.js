@@ -861,23 +861,33 @@ class UITabbedPanel extends UIDiv {
   constructor() {
     super();
 
-    this.dom.className = "TabbedPanel";
+    this.dom.className = "TabbedPanel horizontal";
 
     this.tabs = [];
     this.panels = [];
 
     this.tabsDiv = new UIDiv();
-    this.tabsDiv.setClass("Tabs");
+    this.tabsDiv.setClass("Tabs horizontal");
 
     this.panelsDiv = new UIDiv();
-    this.panelsDiv.setClass("Panels");
+    this.panelsDiv.setClass("Panels horizontal");
 
     this.add(this.tabsDiv);
     this.add(this.panelsDiv);
 
     this.selected = "";
   }
-
+  setMode(mode) {
+    if (mode === "horizontal") {
+      this.dom.className = "TabbedPanel horizontal";
+      this.tabsDiv.setClass("Tabs horizontal");
+      this.panelsDiv.setClass("Panels horizontal");
+    } else if (mode === "vertical") {
+      this.tabsDiv.setClass("Tabs vertical");
+      this.panelsDiv.setClass("Panels vertical");
+      this.dom.className = "TabbedPanel vertical";
+    }
+  }
   select(id) {
     let tab;
     let panel;

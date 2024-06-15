@@ -480,6 +480,25 @@ select:hover {
   width: 120px;
 }
 
+#leftbar.vertical {
+  display: flex;
+}
+
+#leftbar.vertical .Tabs.vertical {
+  width: 60px;
+}
+
+#leftbar.vertical .Tabs.vertical > .Tab {
+  width: 100%;
+  box-sizing: border-box;
+  border-right: none;
+  text-align: center;
+}
+
+#leftbar.vertical .Panels.vertical {
+  width: calc(100% - 60px);
+}
+
 #leftbar .FlexListbox {
   display: flex;
   justify-content: left;

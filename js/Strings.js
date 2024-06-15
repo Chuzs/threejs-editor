@@ -1153,8 +1153,9 @@ function Strings(config) {
       "sidebar/history/clear": "清空",
       "sidebar/history/persistent": "本地存储",
 
-      "leftbar/geometry": "几何体",
-      "leftbar/models": "模型列表",
+      "leftbar/model": "模型",
+      "leftbar/model/geometry": "几何体",
+      "leftbar/model/models": "模型列表",
 
       "toolbar/translate": "移动",
       "toolbar/rotate": "旋转",

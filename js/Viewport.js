@@ -183,6 +183,7 @@ function Viewport(editor) {
   function handleClick() {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
+      console.log(intersects[0].point);
       signals.intersectionsDetected.dispatch(intersects);
 
       render();
@@ -203,7 +204,7 @@ function Viewport(editor) {
   function onMouseUp(event) {
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
-
+    console.log(onUpPosition);
     handleClick();
 
     document.removeEventListener("mouseup", onMouseUp);
@@ -247,9 +248,11 @@ function Viewport(editor) {
 
   function onDrop(event) {
     const dragModel = editor.dragModel;
+    const array = getMousePosition(container.dom, event.clientX, event.clientY);
+    onUpPosition.fromArray(array);
     const intersects = selector.getPointerIntersects(onUpPosition, camera);
-    console.log(intersects);
     if (intersects.length > 0) {
+      console.log(intersects[0].point);
       dragModel.point = intersects[0].point;
     }
     // 如果是几何体模型拖拽

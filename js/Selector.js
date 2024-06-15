@@ -13,7 +13,7 @@ class Selector {
     // signals
 
     signals.intersectionsDetected.add((intersects) => {
-      if (intersects.length > 0) {
+      if (intersects.length > 0 && editor.enableSelect) {
         const object = intersects[0].object;
 
         if (object.userData.object !== undefined) {
