@@ -38,8 +38,25 @@ class Selector {
     this.editor.sceneHelpers.traverseVisible(function (child) {
       if (child.name === "picker") objects.push(child);
     });
-
-    return raycaster.intersectObjects(objects, false);
+    const intersects = raycaster.intersectObjects(objects, false);
+    if (intersects.length > 0) {
+      const intersect = intersects[0];
+      const object = intersect.object;
+      const point = intersect.point;
+      this.editor.mouseHelper.position.copy(point);
+      const normal = intersect.face.normal.clone();
+      normal.transformDirection(object.matrixWorld);
+      normal.multiplyScalar(3);
+      normal.add(intersect.point);
+      this.editor.mouseHelper.lookAt(normal);
+      this.editor.mouseHelper.guidePosition = normal;
+      // const o = intersect.face.normal.clone();
+      // o.transformDirection(object.matrixWorld);
+      // o.multiplyScalar(0.5);
+      // o.add(intersect.point);
+      // this.editor.mouseHelper.spritePosition = o;
+    }
+    return intersects;
   }
 
   getPointerIntersects(point, camera) {

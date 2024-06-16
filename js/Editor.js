@@ -109,6 +109,13 @@ function Editor() {
   this.sceneHelpers = new THREE.Scene();
   this.sceneHelpers.add(new THREE.HemisphereLight(0xffffff, 0x888888, 2));
 
+  this.mouseHelper = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 2),
+    new THREE.MeshNormalMaterial()
+  );
+  this.mouseHelper.visible = !1;
+  this.sceneHelpers.add(this.mouseHelper);
+
   this.object = {};
   this.geometries = {};
   this.materials = {};

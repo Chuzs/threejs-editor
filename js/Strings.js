@@ -1156,6 +1156,11 @@ function Strings(config) {
       "leftbar/model": "模型",
       "leftbar/model/geometry": "几何体",
       "leftbar/model/models": "模型列表",
+      "leftbar/hotspot": "热点",
+      "leftbar/hotspot/add": "添加热点",
+      "leftbar/hotspot/add/image": "图片",
+      "leftbar/hotspot/add/viedeo": "视频",
+      "leftbar/hotspot/list": "热点列表",
 
       "toolbar/translate": "移动",
       "toolbar/rotate": "旋转",

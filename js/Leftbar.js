@@ -1,4 +1,5 @@
 import { LeftbarModel } from "./Leftbar.Model.js";
+import { LeftbarHotspot } from "./Leftbar.hotspot.js";
 import { UITabbedPanel } from "./libs/ui.js";
 function Leftbar(editor) {
   const strings = editor.strings;
@@ -8,8 +9,10 @@ function Leftbar(editor) {
   container.setId("leftbar");
 
   const model = new LeftbarModel(editor);
-
   container.addTab("model", strings.getKey("leftbar/model"), model);
+
+  const hotspot = new LeftbarHotspot(editor);
+  container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);
 
   container.select("model");
   return container;

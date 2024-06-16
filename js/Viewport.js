@@ -183,7 +183,7 @@ function Viewport(editor) {
   function handleClick() {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
-      console.log(intersects[0].point);
+      console.log(intersects[0]);
       signals.intersectionsDetected.dispatch(intersects);
 
       render();
@@ -258,8 +258,10 @@ function Viewport(editor) {
     // 如果是几何体模型拖拽
     if (dragModel.modelType && dragModel.modelType == "geometry") {
       addGeometry(dragModel);
-    } else {
+    } else if (dragModel.modelType && dragModel.modelType == "model") {
       addModel(dragModel);
+    } else if (dragModel.modelType && dragModel.modelType == "hotspot") {
+      addHotspot(dragModel, intersects);
     }
   }
 
@@ -304,6 +306,82 @@ function Viewport(editor) {
     editor.loader.loadModel(model);
   }
 
+  async function addHotspot(model, intersects) {
+    if (intersects.length > 0) {
+      const intersect = intersects[0];
+      const normal = intersect.face.normal.clone();
+      const object = intersect.object;
+      const intersectPoint = intersect.point.clone();
+      normal.transformDirection(object.matrixWorld);
+      normal.multiplyScalar(3);
+      normal.add(intersect.point);
+      if (object.userData.name?.startsWith("Flat_")) {
+        const userData = {
+          id: object.name,
+          objectId: object.id,
+          textureCenter: new THREE.Vector2(0.5, 0.5),
+          textureRotation: 0,
+          position: vector3ToCoordinate(intersectPoint),
+          guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
+          rotation: vector3ToCoordinate(editor.mouseHelper.rotation),
+        };
+
+        const texture = await new THREE.TextureLoader().loadAsync(
+          model.coverUrl
+        );
+        texture.flipY = !1;
+
+        // 立即使用纹理进行材质创建
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: !0,
+          side: THREE.DoubleSide,
+        });
+        intersect.object.material = material;
+        Object.assign(intersect.object.userData, userData);
+        render();
+      } else {
+        const imageMesh = await createImageMesh(model.coverUrl);
+        imageMesh.position.set(
+          intersectPoint.x,
+          intersectPoint.y,
+          intersectPoint.z
+        );
+        const roation = editor.mouseHelper.rotation.clone();
+        imageMesh.rotation.set(roation.x, roation.y, roation.z);
+        imageMesh.translateZ(0.01);
+        const userData = {
+          objectId: imageMesh.id,
+          position: vector3ToCoordinate(imageMesh.position),
+          guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
+          rotation: vector3ToCoordinate(imageMesh.rotation),
+          scale: vector3ToCoordinate(imageMesh.scale),
+        };
+
+        imageMesh.userData = userData;
+        editor.execute(new AddObjectCommand(editor, imageMesh));
+      }
+    }
+  }
+  async function createImageMesh(url) {
+    const texture = await new THREE.TextureLoader().loadAsync(url);
+    const data = texture.source.data;
+    const aspectRatio = data.width / data.height;
+    let plane = new THREE.PlaneGeometry(aspectRatio, 1);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: !0,
+      side: THREE.DoubleSide,
+    });
+    material.toneMapped = !1;
+    return new THREE.Mesh(plane, material);
+  }
+  function vector3ToCoordinate(e) {
+    return { x: Number(e.x), y: Number(e.y), z: Number(e.z) };
+  }
+  function coordinateToVector3(e) {
+    return new THREE.Vector3(Number(e.x), Number(e.y), Number(e.z));
+  }
   container.dom.addEventListener("drop", onDrop);
   container.dom.addEventListener("mousedown", onMouseDown);
   container.dom.addEventListener("touchstart", onTouchStart, {

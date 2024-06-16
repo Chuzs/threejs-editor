@@ -1104,9 +1104,9 @@ class UIFlexListbox extends UIDiv {
       const item = this.items[i];
 
       const listitem = new FlexListboxItem(this, item);
-      if (item.icon) {
+      if (item.coverUrl) {
         const img = new UIImage();
-        img.dom.src = item.icon;
+        img.dom.src = item.coverUrl;
         listitem.setId(item.id || `FlexListbox-${i}`);
         listitem.add(img);
       } else {
