@@ -1,18 +1,18 @@
-import { modelList } from "../config/model.js";
+import { hotspotVideoList } from "../config/model.js";
 import { UIFlexListbox, UIPanel } from "./libs/ui.js";
 
-function LeftbarHotspotAdd(editor) {
+function LeftbarHotspotAddVideo(editor) {
   const container = new UIPanel();
   container.setBorderTop("0");
-  container.setId("hotspotAdd");
+  container.setId("hotspotAddVideo");
 
   const flexListbox = new UIFlexListbox().onChange((e) => {
     editor.dragModel = flexListbox.getValue();
   });
-  flexListbox.setItems(modelList);
+  flexListbox.setItems(hotspotVideoList);
   container.add(flexListbox);
 
   return container;
 }
 
-export { LeftbarHotspotAdd };
+export { LeftbarHotspotAddVideo };

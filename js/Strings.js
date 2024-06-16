@@ -1159,7 +1159,7 @@ function Strings(config) {
       "leftbar/hotspot": "热点",
       "leftbar/hotspot/add": "添加热点",
       "leftbar/hotspot/add/image": "图片",
-      "leftbar/hotspot/add/viedeo": "视频",
+      "leftbar/hotspot/add/video": "视频",
       "leftbar/hotspot/list": "热点列表",
 
       "toolbar/translate": "移动",

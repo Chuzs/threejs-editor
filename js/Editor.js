@@ -98,9 +98,12 @@ function Editor() {
   this.selector = new Selector(this);
   this.storage = new _Storage();
   this.strings = new Strings(this.config);
-
+  this.video = document.getElementById("video-player");
+  this.video.setAttribute("crossorigin", "anonymous");
+  this.video.autoplay = !0;
+  this.video.playsInline = !0;
+  this.mediaPlayer = { mesh: null, dataModel: null, element: this.video };
   this.loader = new Loader(this);
-
   this.camera = _DEFAULT_CAMERA.clone();
 
   this.scene = new THREE.Scene();

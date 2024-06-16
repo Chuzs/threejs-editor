@@ -60,7 +60,14 @@ function Viewport(editor) {
   sceneHelpers.add(grid);
 
   const viewHelper = new ViewHelper(camera, container);
-
+  signals.intersectionsDetected.add((intersects) => {
+    if (intersects.length > 0) {
+      const object = intersects[0].object;
+      if (object.name === "play_video") {
+        playVideo(object.parent, object.parent.userData.url);
+      }
+    }
+  });
   //
 
   const box = new THREE.Box3();
@@ -309,14 +316,11 @@ function Viewport(editor) {
   async function addHotspot(model, intersects) {
     if (intersects.length > 0) {
       const intersect = intersects[0];
-      const normal = intersect.face.normal.clone();
       const object = intersect.object;
       const intersectPoint = intersect.point.clone();
-      normal.transformDirection(object.matrixWorld);
-      normal.multiplyScalar(3);
-      normal.add(intersect.point);
       if (object.userData.name?.startsWith("Flat_")) {
         const userData = {
+          ...model,
           id: object.name,
           objectId: object.id,
           textureCenter: new THREE.Vector2(0.5, 0.5),
@@ -338,6 +342,9 @@ function Viewport(editor) {
           side: THREE.DoubleSide,
         });
         intersect.object.material = material;
+        if (model.fileType === "video") {
+          await addPlayBtn(object, { ...model, ...userData });
+        }
         Object.assign(intersect.object.userData, userData);
         render();
       } else {
@@ -351,6 +358,7 @@ function Viewport(editor) {
         imageMesh.rotation.set(roation.x, roation.y, roation.z);
         imageMesh.translateZ(0.01);
         const userData = {
+          ...model,
           objectId: imageMesh.id,
           position: vector3ToCoordinate(imageMesh.position),
           guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
@@ -359,8 +367,47 @@ function Viewport(editor) {
         };
 
         imageMesh.userData = userData;
+        if (model.fileType === "video") {
+          await addPlayBtn(imageMesh, model);
+        }
         editor.execute(new AddObjectCommand(editor, imageMesh));
       }
+    }
+  }
+  async function addPlayBtn(e, t) {
+    if (e.children.length > 0) {
+      if (t.video && 1 == t.video.playBtn)
+        return void e.children[0].removeFromParent();
+      if (
+        ((e.children[0].visible =
+          "video" == t.type || ("live" == t.type && 1 != t.liveType)),
+        this.mediaPlayer.element)
+      ) {
+        const e = this.mediaPlayer.element;
+        e.pause();
+      }
+    } else {
+      const playTexture = await new THREE.TextureLoader().loadAsync(
+        "images/icon_play.png"
+      );
+
+      const pauseTexture = await new THREE.TextureLoader().loadAsync(
+        "images/icon_pause.png"
+      );
+      e.userData.iconPlay = playTexture;
+      e.userData.iconPause = pauseTexture;
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.3, 0.3),
+        new THREE.MeshBasicMaterial({ map: playTexture, transparent: !0 })
+      );
+      mesh.name = "play_video";
+      t.id.startsWith("Flat_") &&
+        mesh.rotation.set(t.rotation.x, t.rotation.y, t.rotation.z),
+        (mesh.renderOrder = 1);
+      const a = e.scale.y - e.scale.x;
+      mesh.scale.setY(mesh.scale.y - a);
+      e.add(mesh);
+      mesh.translateZ(0.051);
     }
   }
   async function createImageMesh(url) {
@@ -375,6 +422,32 @@ function Viewport(editor) {
     });
     material.toneMapped = !1;
     return new THREE.Mesh(plane, material);
+  }
+  async function playVideo(mesh, url) {
+    console.log(mesh, url);
+    editor.video.src = url;
+    console.log(editor.video);
+    await editor.video.load();
+    editor.mediaPlayer.mesh = mesh;
+    editor.mediaPlayer.dataModel = mesh.userData;
+    editor.video.play().then(() => {
+      const videoTexture = new THREE.VideoTexture(editor.video);
+      videoTexture.minFilter = THREE.LinearFilter;
+      videoTexture.magFilter = THREE.LinearFilter;
+      videoTexture.mapping = THREE.CubeRefractionMapping;
+      videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+      videoTexture.format = THREE.RGBAFormat;
+      videoTexture.flipY = !1;
+      videoTexture.needsUpdate = !0;
+      videoTexture.encoding = THREE.sRGBEncoding;
+      const material = new THREE.MeshBasicMaterial({
+        color: 16777215,
+        map: videoTexture,
+      });
+      mesh.material = material;
+      mesh.material.needsUpdate = true;
+      render();
+    });
   }
   function vector3ToCoordinate(e) {
     return { x: Number(e.x), y: Number(e.y), z: Number(e.z) };
@@ -802,7 +875,7 @@ function Viewport(editor) {
     const mixer = editor.mixer;
     const delta = clock.getDelta();
 
-    let needsUpdate = false;
+    let needsUpdate = true;
 
     // Animations
 
