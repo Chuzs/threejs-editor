@@ -19,6 +19,7 @@ import { SetScaleCommand } from "./commands/SetScaleCommand.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { ViewportPathtracer } from "./Viewport.Pathtracer.js";
 import { AddObjectCommand } from "./commands/AddObjectCommand.js";
+import { ViewportToolbar } from "./Viewport.Toolbar.js";
 
 function Viewport(editor) {
   const selector = editor.selector;
@@ -30,6 +31,7 @@ function Viewport(editor) {
 
   container.add(new ViewportControls(editor));
   container.add(new ViewportInfo(editor));
+  container.add(new ViewportToolbar(editor));
 
   //
 
@@ -180,6 +182,7 @@ function Viewport(editor) {
 
   const onDownPosition = new THREE.Vector2();
   const onUpPosition = new THREE.Vector2();
+  const onMovePosition = new THREE.Vector2();
   const onDoubleClickPosition = new THREE.Vector2();
 
   function getMousePosition(dom, x, y) {
@@ -199,7 +202,6 @@ function Viewport(editor) {
 
   function onMouseDown(event) {
     // event.preventDefault();
-
     if (event.target !== renderer.domElement) return;
 
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
@@ -215,6 +217,31 @@ function Viewport(editor) {
     handleClick();
 
     document.removeEventListener("mouseup", onMouseUp);
+  }
+
+  function onMouseMove(event) {
+    if (event.target !== renderer.domElement) return;
+    const array = getMousePosition(container.dom, event.clientX, event.clientY);
+    onMovePosition.fromArray(array);
+    const intersects = selector.getPointerIntersects(onMovePosition, camera);
+    if (intersects.length > 0) {
+      const intersect = intersects[0];
+      if (
+        editor.mediaPlayer.mesh === intersect.object &&
+        intersect.object.children.length > 0 &&
+        intersect.object.children[0].name === "play_video" &&
+        editor.videoState === "play"
+      ) {
+        intersect.object.children[0].visible = true;
+      }
+      if (
+        editor.mediaPlayer.mesh != intersect.object &&
+        intersect.object.name != "play_video" &&
+        editor.videoState === "play"
+      ) {
+        editor.mediaPlayer.mesh.children[0].visible = false;
+      }
+    }
   }
 
   function onTouchStart(event) {
@@ -248,7 +275,8 @@ function Viewport(editor) {
 
     if (intersects.length > 0) {
       const intersect = intersects[0];
-
+      intersect.object.userData.guidePosition =
+        editor.mouseHelper.guidePosition;
       signals.objectFocused.dispatch(intersect.object);
     }
   }
@@ -424,30 +452,49 @@ function Viewport(editor) {
     return new THREE.Mesh(plane, material);
   }
   async function playVideo(mesh, url) {
-    console.log(mesh, url);
-    editor.video.src = url;
-    console.log(editor.video);
-    await editor.video.load();
-    editor.mediaPlayer.mesh = mesh;
-    editor.mediaPlayer.dataModel = mesh.userData;
-    editor.video.play().then(() => {
-      const videoTexture = new THREE.VideoTexture(editor.video);
-      videoTexture.minFilter = THREE.LinearFilter;
-      videoTexture.magFilter = THREE.LinearFilter;
-      videoTexture.mapping = THREE.CubeRefractionMapping;
-      videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
-      videoTexture.format = THREE.RGBAFormat;
-      videoTexture.flipY = !1;
-      videoTexture.needsUpdate = !0;
-      videoTexture.encoding = THREE.sRGBEncoding;
-      const material = new THREE.MeshBasicMaterial({
-        color: 16777215,
-        map: videoTexture,
+    if (editor.videoState === "play") {
+      editor.video.pause();
+      editor.videoState = "pause";
+      if (mesh.children.length > 0) {
+        mesh.children[0].visible = true;
+        mesh.children[0].material.map = mesh.userData.iconPlay;
+      }
+    } else {
+      editor.video.src = url;
+      await editor.video.load();
+      editor.mediaPlayer.mesh = mesh;
+      editor.mediaPlayer.dataModel = mesh.userData;
+      editor.video.play().then(() => {
+        editor.videoState = "play";
+        const videoTexture = new THREE.VideoTexture(editor.video);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.mapping = THREE.CubeRefractionMapping;
+        videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+        videoTexture.format = THREE.RGBAFormat;
+        videoTexture.flipY = !1;
+        videoTexture.needsUpdate = !0;
+        videoTexture.encoding = THREE.sRGBEncoding;
+        const material = new THREE.MeshBasicMaterial({
+          color: 16777215,
+          map: videoTexture,
+        });
+        mesh.material = material;
+        mesh.material.needsUpdate = true;
+        if (mesh.children.length > 0) {
+          mesh.children[0].visible = false;
+          mesh.children[0].material.map = mesh.userData.iconPause;
+        }
+        editor.video.addEventListener("ended", () => {
+          editor.videoState = null;
+          if (mesh.children.length > 0) {
+            mesh.children[0].visible = true;
+            mesh.children[0].material.map = mesh.userData.iconPlay;
+          }
+        });
+        render();
       });
-      mesh.material = material;
-      mesh.material.needsUpdate = true;
-      render();
-    });
+    }
   }
   function vector3ToCoordinate(e) {
     return { x: Number(e.x), y: Number(e.y), z: Number(e.z) };
@@ -456,6 +503,7 @@ function Viewport(editor) {
     return new THREE.Vector3(Number(e.x), Number(e.y), Number(e.z));
   }
   container.dom.addEventListener("drop", onDrop);
+  container.dom.addEventListener("mousemove", onMouseMove);
   container.dom.addEventListener("mousedown", onMouseDown);
   container.dom.addEventListener("touchstart", onTouchStart, {
     passive: false,

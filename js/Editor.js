@@ -119,6 +119,8 @@ function Editor() {
   this.mouseHelper.visible = !1;
   this.sceneHelpers.add(this.mouseHelper);
 
+  this.videoState = null;
+
   this.object = {};
   this.geometries = {};
   this.materials = {};

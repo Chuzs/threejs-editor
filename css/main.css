@@ -558,6 +558,31 @@ select:hover {
   opacity: 0.5;
 }
 
+#viewportToolbar {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%);
+  top: 42px;
+  display: flex;
+  width: 128px;
+  background: #eee;
+  text-align: center;
+}
+
+#viewportToolbar button,
+#viewportToolbar input {
+  height: 32px;
+}
+#viewportToolbar input {
+  width: 12px;
+  margin: 0 10px;
+}
+
+#viewportToolbar button img {
+  width: 16px;
+  opacity: 0.5;
+}
+
 .Outliner {
   color: #444;
   background-color: #fff;
