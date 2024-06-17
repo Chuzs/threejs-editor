@@ -9,7 +9,14 @@ function Leftbar(editor) {
   container.setId("leftbar");
 
   const model = new LeftbarModel(editor);
-  container.addTab("model", strings.getKey("leftbar/model"), model);
+  container
+    .addTab("model", strings.getKey("leftbar/model"), model)
+    .onChange(() => {
+      if (container.selected != "model") {
+        editor.deselect();
+      }
+      editor.enableSelect = container.selected === "model";
+    });
 
   const hotspot = new LeftbarHotspot(editor);
   container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);

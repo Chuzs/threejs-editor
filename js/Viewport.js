@@ -349,6 +349,7 @@ function Viewport(editor) {
       if (object.userData.name?.startsWith("Flat_")) {
         const userData = {
           ...model,
+          name: object.userData.name,
           id: object.name,
           objectId: object.id,
           textureCenter: new THREE.Vector2(0.5, 0.5),
@@ -451,51 +452,101 @@ function Viewport(editor) {
     material.toneMapped = !1;
     return new THREE.Mesh(plane, material);
   }
-  async function playVideo(mesh, url) {
+  async function playVideo(mesh, videoUrl) {
     if (editor.videoState === "play") {
-      editor.video.pause();
-      editor.videoState = "pause";
-      if (mesh.children.length > 0) {
-        mesh.children[0].visible = true;
-        mesh.children[0].material.map = mesh.userData.iconPlay;
-      }
-    } else {
-      editor.video.src = url;
-      await editor.video.load();
-      editor.mediaPlayer.mesh = mesh;
-      editor.mediaPlayer.dataModel = mesh.userData;
-      editor.video.play().then(() => {
-        editor.videoState = "play";
-        const videoTexture = new THREE.VideoTexture(editor.video);
-        videoTexture.minFilter = THREE.LinearFilter;
-        videoTexture.magFilter = THREE.LinearFilter;
-        videoTexture.mapping = THREE.CubeRefractionMapping;
-        videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
-        videoTexture.format = THREE.RGBAFormat;
-        videoTexture.flipY = !1;
-        videoTexture.needsUpdate = !0;
-        videoTexture.encoding = THREE.sRGBEncoding;
+      if (editor.mediaPlayer.mesh === mesh) {
+        editor.video.pause();
+        editor.videoState = "pause";
+        if (mesh.children.length > 0) {
+          mesh.children[0].visible = true;
+          mesh.children[0].material.map = mesh.userData.iconPlay;
+        }
+      } else {
+        const texture = await new THREE.TextureLoader().loadAsync(
+          editor.mediaPlayer.mesh.userData.coverUrl
+        );
+        texture.flipY = !1;
+        // 立即使用纹理进行材质创建
         const material = new THREE.MeshBasicMaterial({
-          color: 16777215,
-          map: videoTexture,
+          map: texture,
+          transparent: !0,
+          side: THREE.DoubleSide,
         });
-        mesh.material = material;
-        mesh.material.needsUpdate = true;
+        editor.mediaPlayer.mesh.material = material;
+        if (editor.mediaPlayer.mesh.children.length > 0) {
+          editor.mediaPlayer.mesh.children[0].visible = true;
+          editor.mediaPlayer.mesh.children[0].material.map =
+            mesh.userData.iconPlay;
+        }
+        videoCallback(mesh, videoUrl);
+      }
+    } else if (editor.videoState === "pause") {
+      if (editor.mediaPlayer.mesh === mesh) {
+        editor.video.play();
+        editor.videoState = "play";
         if (mesh.children.length > 0) {
           mesh.children[0].visible = false;
           mesh.children[0].material.map = mesh.userData.iconPause;
         }
-        editor.video.addEventListener("ended", () => {
-          editor.videoState = null;
-          if (mesh.children.length > 0) {
-            mesh.children[0].visible = true;
-            mesh.children[0].material.map = mesh.userData.iconPlay;
-          }
+      } else {
+        const texture = await new THREE.TextureLoader().loadAsync(
+          editor.mediaPlayer.mesh.userData.coverUrl
+        );
+        texture.flipY = !1;
+        // 立即使用纹理进行材质创建
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: !0,
+          side: THREE.DoubleSide,
         });
-        render();
-      });
+        editor.mediaPlayer.mesh.material = material;
+        videoCallback(mesh, videoUrl);
+      }
+    } else {
+      videoCallback(mesh, videoUrl);
     }
   }
+  async function videoCallback(mesh, videoUrl) {
+    const meshCover = mesh.material;
+    editor.video.src = videoUrl;
+
+    await editor.video.load();
+    editor.mediaPlayer.mesh = mesh;
+    editor.mediaPlayer.dataModel = mesh.userData;
+    editor.video.play().then(() => {
+      const videoTexture = new THREE.VideoTexture(editor.video);
+      videoTexture.minFilter = THREE.LinearFilter;
+      videoTexture.magFilter = THREE.LinearFilter;
+      videoTexture.mapping = THREE.CubeRefractionMapping;
+      videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+      videoTexture.format = THREE.RGBAFormat;
+      videoTexture.flipY = !1;
+      videoTexture.needsUpdate = !0;
+      videoTexture.encoding = THREE.sRGBEncoding;
+      const material = new THREE.MeshBasicMaterial({
+        color: 16777215,
+        map: videoTexture,
+      });
+      mesh.material = material;
+      mesh.material.needsUpdate = true;
+
+      editor.video.addEventListener("ended", () => {
+        editor.videoState = null;
+        if (mesh.children.length > 0) {
+          mesh.children[0].visible = true;
+          mesh.children[0].material.map = mesh.userData.iconPlay;
+          mesh.material = meshCover;
+        }
+      });
+      render();
+    });
+    editor.videoState = "play";
+    if (mesh.children.length > 0) {
+      mesh.children[0].visible = false;
+      mesh.children[0].material.map = mesh.userData.iconPause;
+    }
+  }
+
   function vector3ToCoordinate(e) {
     return { x: Number(e.x), y: Number(e.y), z: Number(e.z) };
   }

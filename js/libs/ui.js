@@ -945,6 +945,7 @@ class UITabbedPanel extends UIDiv {
     this.panelsDiv.add(panel);
 
     this.select(id);
+    return this;
   }
 }
 
@@ -964,7 +965,12 @@ class UITab extends UIText {
     const scope = this;
 
     this.dom.addEventListener("click", function () {
+      const changeEvent = new Event("change", {
+        bubbles: true,
+        cancelable: true,
+      });
       scope.parent.select(scope.dom.id);
+      scope.parent.dom.dispatchEvent(changeEvent);
     });
   }
 }
