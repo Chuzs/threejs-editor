@@ -44,12 +44,13 @@ function ViewportToolbar(editor) {
   });
   container.add(scale);
 
-  const local = new UICheckbox(false);
-  local.dom.title = strings.getKey("toolbar/local");
-  local.onChange(function () {
-    signals.spaceChanged.dispatch(this.getValue() === true ? "local" : "world");
+  const enableChildSelect = new UICheckbox(true);
+  enableChildSelect.dom.title = strings.getKey("viewport/toolbar/child_select");
+  enableChildSelect.onChange(function () {
+    editor.enableChildSelect = this.getValue();
+    editor.deselect();
   });
-  container.add(local);
+  container.add(enableChildSelect);
 
   //
 

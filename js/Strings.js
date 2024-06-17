@@ -871,6 +871,7 @@ function Strings(config) {
       "menubar/add/camera/orthographic": "正交相机",
 
       "menubar/status/autosave": "自动保存",
+      "menubar/status/preview": "预览",
 
       "menubar/view": "视图",
       "menubar/view/fullscreen": "全屏",
@@ -1179,6 +1180,8 @@ function Strings(config) {
       "viewport/info/sample": "样本",
       "viewport/info/samples": "样本",
       "viewport/info/rendertime": "渲染时间",
+
+      "viewport/toolbar/child_select": "鼠标是否可以选中模型子构件",
     },
 
     ja: {

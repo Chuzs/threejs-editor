@@ -135,6 +135,8 @@ function Editor() {
   this.selected = null;
 
   this.enableSelect = true;
+  this.enableChildSelect = true;
+  this.showViewportToolbar = true;
   this.helpers = {};
 
   this.cameras = {};

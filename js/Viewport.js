@@ -31,7 +31,9 @@ function Viewport(editor) {
 
   container.add(new ViewportControls(editor));
   container.add(new ViewportInfo(editor));
-  container.add(new ViewportToolbar(editor));
+  if (editor.showViewportToolbar) {
+    container.add(new ViewportToolbar(editor));
+  }
 
   //
 
@@ -193,7 +195,7 @@ function Viewport(editor) {
   function handleClick() {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
-      console.log(intersects[0]);
+      console.log(intersects);
       signals.intersectionsDetected.dispatch(intersects);
 
       render();

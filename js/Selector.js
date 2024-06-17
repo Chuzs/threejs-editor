@@ -20,8 +20,10 @@ class Selector {
           // helper
 
           this.select(object.userData.object);
-        } else {
+        } else if (editor.enableChildSelect) {
           this.select(object);
+        } else {
+          this.select(this.findParentIsScene(object));
         }
       } else {
         this.select(null);
@@ -58,7 +60,13 @@ class Selector {
     }
     return intersects;
   }
-
+  findParentIsScene(obj) {
+    if (obj.parent instanceof THREE.Scene) {
+      return obj;
+    } else {
+      return this.findParentIsScene(obj.parent);
+    }
+  }
   getPointerIntersects(point, camera) {
     mouse.set(point.x * 2 - 1, -(point.y * 2) + 1);
 
