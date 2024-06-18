@@ -422,11 +422,6 @@ function Viewport(editor) {
         "images/icon_play.png"
       );
 
-      const pauseTexture = await new THREE.TextureLoader().loadAsync(
-        "images/icon_pause.png"
-      );
-      e.userData.iconPlay = playTexture;
-      e.userData.iconPause = pauseTexture;
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(0.3, 0.3),
         new THREE.MeshBasicMaterial({ map: playTexture, transparent: !0 })
@@ -460,8 +455,11 @@ function Viewport(editor) {
         editor.video.pause();
         editor.videoState = "pause";
         if (mesh.children.length > 0) {
+          const playTexture = await new THREE.TextureLoader().loadAsync(
+            "images/icon_play.png"
+          );
+          mesh.children[0].material.map = playTexture;
           mesh.children[0].visible = true;
-          mesh.children[0].material.map = mesh.userData.iconPlay;
         }
       } else {
         const texture = await new THREE.TextureLoader().loadAsync(
@@ -476,9 +474,11 @@ function Viewport(editor) {
         });
         editor.mediaPlayer.mesh.material = material;
         if (editor.mediaPlayer.mesh.children.length > 0) {
+          const playTexture = await new THREE.TextureLoader().loadAsync(
+            "images/icon_play.png"
+          );
+          editor.mediaPlayer.mesh.children[0].material.map = playTexture;
           editor.mediaPlayer.mesh.children[0].visible = true;
-          editor.mediaPlayer.mesh.children[0].material.map =
-            mesh.userData.iconPlay;
         }
         videoCallback(mesh, videoUrl);
       }
@@ -487,8 +487,11 @@ function Viewport(editor) {
         editor.video.play();
         editor.videoState = "play";
         if (mesh.children.length > 0) {
+          const pauseTexture = await new THREE.TextureLoader().loadAsync(
+            "images/icon_pause.png"
+          );
+          mesh.children[0].material.map = pauseTexture;
           mesh.children[0].visible = false;
-          mesh.children[0].material.map = mesh.userData.iconPause;
         }
       } else {
         const texture = await new THREE.TextureLoader().loadAsync(
@@ -532,11 +535,15 @@ function Viewport(editor) {
       mesh.material = material;
       mesh.material.needsUpdate = true;
 
-      editor.video.addEventListener("ended", () => {
+      editor.video.addEventListener("ended", async () => {
         editor.videoState = null;
         if (mesh.children.length > 0) {
+          const playTexture = await new THREE.TextureLoader().loadAsync(
+            "images/icon_play.png"
+          );
+          mesh.children[0].material.map = playTexture;
           mesh.children[0].visible = true;
-          mesh.children[0].material.map = mesh.userData.iconPlay;
+
           mesh.material = meshCover;
         }
       });
@@ -544,8 +551,11 @@ function Viewport(editor) {
     });
     editor.videoState = "play";
     if (mesh.children.length > 0) {
+      const pauseTexture = await new THREE.TextureLoader().loadAsync(
+        "images/icon_pause.png"
+      );
+      mesh.children[0].material.map = pauseTexture;
       mesh.children[0].visible = false;
-      mesh.children[0].material.map = mesh.userData.iconPause;
     }
   }
 
