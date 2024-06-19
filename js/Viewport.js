@@ -1014,7 +1014,9 @@ function Viewport(editor) {
     if (renderer.xr.isPresenting === true) {
       needsUpdate = true;
     }
-
+    if (controls.enabled) {
+      controls.update(delta);
+    }
     if (needsUpdate === true) render();
 
     updatePT();

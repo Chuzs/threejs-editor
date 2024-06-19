@@ -11,6 +11,12 @@ class EditorControls extends THREE.EventDispatcher {
     this.panSpeed = 0.002;
     this.zoomSpeed = 0.1;
     this.rotationSpeed = 0.005;
+    this.movementSpeed = 2.0;
+
+    this.moveForward = false;
+    this.moveBackward = false;
+    this.moveLeft = false;
+    this.moveRight = false;
 
     // internals
 
@@ -218,6 +224,84 @@ class EditorControls extends THREE.EventDispatcher {
       scope.zoom(delta.set(0, 0, event.deltaY > 0 ? 1 : -1));
     }
 
+    function onKeyDown(event) {
+      console.log(event.code);
+      switch (event.code) {
+        case "ArrowUp":
+        case "KeyW":
+          scope.moveForward = true;
+          break;
+
+        case "ArrowLeft":
+        case "KeyA":
+          scope.moveLeft = true;
+          break;
+
+        case "ArrowDown":
+        case "KeyS":
+          scope.moveBackward = true;
+          break;
+
+        case "ArrowRight":
+        case "KeyD":
+          scope.moveRight = true;
+          break;
+
+        case "Space":
+          scope.moveUp = true;
+          break;
+        case "KeyF":
+          scope.moveDown = true;
+          break;
+      }
+    }
+
+    function onKeyUp(event) {
+      switch (event.code) {
+        case "ArrowUp":
+        case "KeyW":
+          scope.moveForward = false;
+          break;
+
+        case "ArrowLeft":
+        case "KeyA":
+          scope.moveLeft = false;
+          break;
+
+        case "ArrowDown":
+        case "KeyS":
+          scope.moveBackward = false;
+          break;
+
+        case "ArrowRight":
+        case "KeyD":
+          scope.moveRight = false;
+          break;
+
+        case "Space":
+          scope.moveUp = false;
+          break;
+        case "KeyF":
+          scope.moveDown = false;
+          break;
+      }
+    }
+
+    this.update = function (delta) {
+      if (this.enabled === false) return;
+
+      const actualMoveSpeed = delta * this.movementSpeed;
+
+      if (this.moveForward) object.translateZ(-actualMoveSpeed);
+      if (this.moveBackward) object.translateZ(actualMoveSpeed);
+
+      if (this.moveLeft) object.translateX(-actualMoveSpeed);
+      if (this.moveRight) object.translateX(actualMoveSpeed);
+
+      if (this.moveUp) object.translateY(actualMoveSpeed);
+      if (this.moveDown) object.translateY(-actualMoveSpeed);
+    };
+
     function contextmenu(event) {
       event.preventDefault();
     }
@@ -228,6 +312,8 @@ class EditorControls extends THREE.EventDispatcher {
       domElement.removeEventListener("wheel", onMouseWheel);
 
       domElement.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keyup", onKeyUp);
     };
 
     domElement.addEventListener("contextmenu", contextmenu);
@@ -235,6 +321,8 @@ class EditorControls extends THREE.EventDispatcher {
     domElement.addEventListener("wheel", onMouseWheel, { passive: false });
 
     domElement.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
 
     // touch
 
