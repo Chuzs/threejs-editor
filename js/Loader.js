@@ -251,7 +251,7 @@ function Loader(editor) {
               scene.name = filename;
 
               scene.animations.push(...result.animations);
-              if (model.point) {
+              if (model && model.point) {
                 const { x, y, z } = model.point;
                 scene.position.set(x, y, z);
               }

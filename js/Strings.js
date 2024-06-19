@@ -1182,6 +1182,7 @@ function Strings(config) {
       "viewport/info/rendertime": "渲染时间",
 
       "viewport/toolbar/child_select": "鼠标是否可以选中模型子构件",
+      "viewport/toolbar/reset": "重置相机",
     },
 
     ja: {

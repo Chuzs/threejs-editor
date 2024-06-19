@@ -518,7 +518,7 @@ select:hover {
 }
 
 #leftbar .FlexListbox .FlexListboxItem img {
-  object-fit: cover;
+  object-fit: contain;
   width: 100%;
   height: 100%;
 }
@@ -562,16 +562,22 @@ select:hover {
   position: absolute;
   left: 50%;
   transform: translate(-50%);
-  top: 42px;
+  top: 10px;
   display: flex;
-  width: 128px;
-  background: #eee;
+  background: #ddd;
   text-align: center;
 }
 
+#viewportToolbar button.Reset img {
+  transform: rotateZ(45deg);
+}
 #viewportToolbar button,
 #viewportToolbar input {
   height: 32px;
+  cursor: pointer;
+}
+#viewportToolbar button:hover {
+  background-color: #eee;
 }
 #viewportToolbar input {
   width: 12px;

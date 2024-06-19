@@ -331,7 +331,7 @@ function Viewport(editor) {
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = model.name;
-    if (model.point) {
+    if (model && model.point) {
       // 在控制台输出鼠标在场景中的位置
       const { x, y, z } = model.point;
       mesh.position.set(x, y, z);

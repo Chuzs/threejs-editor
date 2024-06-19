@@ -487,7 +487,10 @@ Editor.prototype = {
   focusById: function (id) {
     this.focus(this.scene.getObjectById(id));
   },
-
+  resetCamera() {
+    this.camera.copy(_DEFAULT_CAMERA);
+    this.signals.cameraResetted.dispatch();
+  },
   clear: function () {
     this.history.clear();
     this.storage.clear();
