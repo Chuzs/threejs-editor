@@ -38,12 +38,14 @@ function ResizerLeft(editor) {
     document.getElementById("script").style.left = x + "px";
     document.getElementById("viewport").style.left = x + "px";
     document.getElementById("toolbar").style.left = x + 10 + "px";
-
-    signals.windowResize.dispatch();
   }
 
   dom.addEventListener("pointerdown", onPointerDown);
 
+  signals.windowResize.dispatch();
+  signals.showLeftbarChange.add((showLeftbar) => {
+    dom.hidden = !showLeftbar;
+  });
   return new UIElement(dom);
 }
 

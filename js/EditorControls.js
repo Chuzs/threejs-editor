@@ -250,7 +250,7 @@ class EditorControls extends THREE.EventDispatcher {
         case "Space":
           scope.moveUp = true;
           break;
-        case "KeyF":
+        case "KeyZ":
           scope.moveDown = true;
           break;
       }
@@ -281,7 +281,7 @@ class EditorControls extends THREE.EventDispatcher {
         case "Space":
           scope.moveUp = false;
           break;
-        case "KeyF":
+        case "KeyZ":
           scope.moveDown = false;
           break;
       }

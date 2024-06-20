@@ -3,6 +3,7 @@ import { LeftbarHotspot } from "./Leftbar.hotspot.js";
 import { UITabbedPanel } from "./libs/ui.js";
 function Leftbar(editor) {
   const strings = editor.strings;
+  const signals = editor.signals;
 
   const container = new UITabbedPanel();
   container.setMode("vertical");
@@ -22,6 +23,10 @@ function Leftbar(editor) {
   container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);
 
   container.select("model");
+
+  signals.showLeftbarChange.add((showLeftbar) => {
+    container.setHidden(!showLeftbar);
+  });
   return container;
 }
 

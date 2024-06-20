@@ -976,6 +976,15 @@ function Viewport(editor) {
 
   signals.cameraResetted.add(updateAspectRatio);
 
+  signals.showLeftbarChange.add((showLeftbar) => {
+    container.setStyle("left", [showLeftbar ? "350px" : 0]);
+    signals.windowResize.dispatch();
+  });
+  signals.showSidebarChange.add((showSidebar) => {
+    container.setStyle("right", [showSidebar ? "350px" : 0]);
+    signals.windowResize.dispatch();
+  });
+
   // animations
 
   let prevActionsInUse = 0;
