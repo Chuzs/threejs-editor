@@ -121,7 +121,12 @@ function Editor() {
   this.mouseHelper.visible = !1;
   this.sceneHelpers.add(this.mouseHelper);
 
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const planeHelper = new THREE.PlaneHelper(plane, 10, 0xffff00);
+  // this.sceneHelpers.add(planeHelper);
+
   this.videoState = null;
+  this.placeModel = null;
 
   this.object = {};
   this.geometries = {};

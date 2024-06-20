@@ -193,6 +193,9 @@ function Viewport(editor) {
   }
 
   function handleClick() {
+    let a = selector.getDropPointerIntersects(onUpPosition, camera);
+    console.log(a);
+    // selector.select(a[0]);
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
       console.log(intersects);
@@ -215,9 +218,8 @@ function Viewport(editor) {
   function onMouseUp(event) {
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
-    console.log(onUpPosition);
     handleClick();
-
+    onClick(event);
     document.removeEventListener("mouseup", onMouseUp);
   }
 
@@ -225,6 +227,7 @@ function Viewport(editor) {
     if (event.target !== renderer.domElement) return;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onMovePosition.fromArray(array);
+    // console.log(editor.dragModel);
     const intersects = selector.getPointerIntersects(onMovePosition, camera);
     if (intersects.length > 0) {
       const intersect = intersects[0];
@@ -281,6 +284,48 @@ function Viewport(editor) {
         editor.mouseHelper.guidePosition;
       signals.objectFocused.dispatch(intersect.object);
     }
+  }
+
+  async function onClick(event) {
+    const dragModel = editor.dragModel;
+    const array = getMousePosition(container.dom, event.clientX, event.clientY);
+    onUpPosition.fromArray(array);
+    const intersects = selector.getDropPointerIntersects(onUpPosition, camera);
+    if (intersects.length > 0) {
+      let closestObject = null;
+      let closestDistance = Infinity;
+      scene.children.forEach((otherObject) => {
+        const distance = intersects[0].object.position.distanceTo(
+          otherObject.position
+        );
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestObject = otherObject;
+        }
+      });
+
+      if (closestObject) {
+        // 这里可以根据需要调整吸附的距离
+        const snapDistance = 1; // 吸附距离
+        const direction = intersects[0].object.position
+          .clone()
+          .sub(closestObject.position)
+          .setLength(snapDistance);
+        dragModel.point = closestObject.position.clone().add(direction);
+        console.log(closestObject.position.clone().add(direction));
+      } else {
+        dragModel.point = intersects[0].point;
+      }
+    }
+    // 如果是几何体模型拖拽
+    if (dragModel.modelType && dragModel.modelType == "geometry") {
+      await addGeometry(dragModel);
+    } else if (dragModel.modelType && dragModel.modelType == "model") {
+      await addModel(dragModel);
+    } else if (dragModel.modelType && dragModel.modelType == "hotspot") {
+      addHotspot(dragModel, intersects);
+    }
+    editor.deselect();
   }
 
   function onDrop(event) {

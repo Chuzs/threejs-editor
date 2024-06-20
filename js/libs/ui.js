@@ -1087,6 +1087,7 @@ class UIFlexListbox extends UIDiv {
     this.listitems = [];
 
     this.selectedValue = null;
+    this.selectedMode = null;
   }
 
   setItems(items) {
@@ -1146,6 +1147,13 @@ class UIFlexListbox extends UIDiv {
     });
     this.dom.dispatchEvent(changeEvent);
   }
+  getMode() {
+    return this.selectedMode;
+  }
+
+  setMode(value) {
+    this.selectedMode = value;
+  }
 }
 
 class FlexListboxItem extends UIDiv {
@@ -1166,11 +1174,17 @@ class FlexListboxItem extends UIDiv {
       event.preventDefault();
     }
     function onDragstart(event) {
+      scope.parent.setMode("drag");
+      scope.parent.setValue(scope.model);
+    }
+    function onClick(event) {
+      scope.parent.setMode("click");
       scope.parent.setValue(scope.model);
     }
 
     this.dom.addEventListener("drag", onDrag);
     this.dom.addEventListener("dragstart", onDragstart);
+    this.dom.addEventListener("click", onClick);
   }
 }
 
