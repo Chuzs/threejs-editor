@@ -3,7 +3,7 @@ const modelList = [
     name: "科技展厅",
     key: "glb-27",
     fileType: "glb",
-    id: 27,
+    id: "27",
     animation: false,
     filePath: "models/glb/glb-27.glb",
     coverUrl: "images/model-icon/21.jpg",
@@ -14,7 +14,7 @@ const modelList = [
     name: "电脑",
     key: "glb-28",
     fileType: "glb",
-    id: 28,
+    id: "28",
     animation: false,
     filePath: "models/glb/glb-28.glb",
     coverUrl: "images/model-icon/19.png",
@@ -25,7 +25,7 @@ const modelList = [
     name: "植物",
     key: "glb-29",
     fileType: "glb",
-    id: 29,
+    id: "29",
     animation: false,
     filePath: "models/glb/glb-29.glb",
     coverUrl: "images/model-icon/20.png",
@@ -768,19 +768,21 @@ const materialList = [
     name: "地板",
     key: "glb-30",
     fileType: "glb",
-    id: 30,
+    id: "30",
     animation: false,
     filePath: "models/glb/glb-30.glb",
     // coverUrl: "images/model-icon/20.png",
     modelType: "model",
+    direction: "horizon",
     decomposeName: "glb-30",
   },
   {
     name: "墙",
     key: "glb-31",
     fileType: "glb",
-    id: 30,
+    id: "31",
     animation: false,
+    direction: "vertical",
     filePath: "models/glb/glb-31.glb",
     // coverUrl: "images/model-icon/20.png",
     modelType: "model",
@@ -791,29 +793,7 @@ const materialList = [
 // 几何体模型列表
 const geometryModelList = [
   {
-    id: 30,
-    name: "立方体",
-    modelType: "geometry",
-    type: "BoxGeometry",
-    width: 1, // X轴上面的宽度
-    height: 1, // Y轴上面的高度
-    depth: 1, // 轴上面的深度
-    widthSegments: 1, //宽度的分段数
-    heightSegments: 1, //高度的分段数
-    depthSegments: 1, //深度的分段数
-  },
-  {
-    id: 31,
-    name: "胶囊",
-    modelType: "geometry",
-    type: "CapsuleGeometry",
-    radius: 0.5, // 胶囊半径
-    length: 0.5, //中间区域的长度
-    capSegments: 10, // 构造盖子的曲线部分的个数
-    radialSegments: 10, //覆盖胶囊圆周的分离的面的个数
-  },
-  {
-    id: 32,
+    id: "32",
     name: "圆形",
     modelType: "geometry",
     type: "CircleGeometry",
@@ -823,7 +803,7 @@ const geometryModelList = [
     thetaLength: 6.44, //圆形扇区的中心角
   },
   {
-    id: 33,
+    id: "33",
     name: "圆锥",
     modelType: "geometry",
     type: "ConeGeometry",
@@ -836,7 +816,7 @@ const geometryModelList = [
     thetaLength: 6.44, //圆形扇区的中心角
   },
   {
-    id: 35,
+    id: "35",
     name: "十二面体",
     modelType: "geometry",
     type: "DodecahedronGeometry",
@@ -844,7 +824,7 @@ const geometryModelList = [
     detail: 0,
   },
   {
-    id: 36,
+    id: "36",
     name: "二十面体",
     modelType: "geometry",
     type: "IcosahedronGeometry",
@@ -852,7 +832,7 @@ const geometryModelList = [
     detail: 0,
   },
   {
-    id: 37,
+    id: "37",
     name: "八面体",
     modelType: "geometry",
     type: "OctahedronGeometry",
@@ -860,7 +840,7 @@ const geometryModelList = [
     detail: 0,
   },
   {
-    id: 38,
+    id: "38",
     name: "平面",
     modelType: "geometry",
     type: "PlaneGeometry",
@@ -870,7 +850,7 @@ const geometryModelList = [
     heightSegments: 1, //高度的分段数
   },
   {
-    id: 40,
+    id: "40",
     name: "球",
     modelType: "geometry",
     type: "SphereGeometry",
@@ -883,7 +863,7 @@ const geometryModelList = [
     thetaLength: 7,
   },
   {
-    id: 41,
+    id: "41",
     name: "四面体",
     modelType: "geometry",
     type: "TetrahedronGeometry",
@@ -891,7 +871,7 @@ const geometryModelList = [
     detail: 0,
   },
   {
-    id: 42,
+    id: "42",
     name: "圆环",
     modelType: "geometry",
     type: "TorusGeometry",
@@ -900,6 +880,28 @@ const geometryModelList = [
     radialSegments: 15,
     tubularSegments: 15,
     arc: 6.32,
+  },
+  {
+    id: "43",
+    name: "立方体",
+    modelType: "geometry",
+    type: "BoxGeometry",
+    width: 1, // X轴上面的宽度
+    height: 1, // Y轴上面的高度
+    depth: 1, // 轴上面的深度
+    widthSegments: 1, //宽度的分段数
+    heightSegments: 1, //高度的分段数
+    depthSegments: 1, //深度的分段数
+  },
+  {
+    id: "44",
+    name: "胶囊",
+    modelType: "geometry",
+    type: "CapsuleGeometry",
+    radius: 0.5, // 胶囊半径
+    length: 0.5, //中间区域的长度
+    capSegments: 10, // 构造盖子的曲线部分的个数
+    radialSegments: 10, //覆盖胶囊圆周的分离的面的个数
   },
 ];
 

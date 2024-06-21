@@ -526,6 +526,11 @@ select:hover {
   border-radius: 5px;
 }
 
+#leftbar .FlexListbox .FlexListboxItem.selected {
+  border: 1px solid #aaa;
+  box-sizing: border-box;
+}
+
 #leftbar .FlexListbox .FlexListboxItem img {
   object-fit: contain;
   width: 100%;

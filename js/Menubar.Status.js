@@ -10,7 +10,7 @@ function MenubarStatus(editor) {
   container.setClass("menu right");
 
   const childIcon = document.createElement("img");
-  childIcon.title = strings.getKey("viewport/toolbar/child_select");
+  childIcon.title = strings.getKey("menubar/status/child_select");
   childIcon.src = "images/child.svg";
 
   const child = new UIButton();

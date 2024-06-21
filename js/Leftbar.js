@@ -10,6 +10,8 @@ function Leftbar(editor) {
   container.setMode("vertical");
   container.setId("leftbar");
 
+  const create = new LeftbarCreate(editor);
+  container.addTab("create", strings.getKey("leftbar/create"), create);
   const model = new LeftbarModel(editor);
   container
     .addTab("model", strings.getKey("leftbar/model"), model)
@@ -23,9 +25,7 @@ function Leftbar(editor) {
   const hotspot = new LeftbarHotspot(editor);
   container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);
 
-  const create = new LeftbarCreate(editor);
-  container.addTab("create", strings.getKey("leftbar/create"), create);
-  container.select("model");
+  container.select("create");
 
   signals.showLeftbarChanged.add((showLeftbar) => {
     container.setHidden(!showLeftbar);

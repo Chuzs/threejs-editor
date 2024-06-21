@@ -2,7 +2,6 @@ import { materialList } from "../config/model.js";
 import { UIFlexListbox, UIPanel } from "./libs/ui.js";
 function LeftbarCreate(editor) {
   const container = new UIPanel();
-  container.setBorderTop("0");
   container.setId("materialList");
 
   const flexListbox = new UIFlexListbox().onChange((e) => {

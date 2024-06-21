@@ -1141,6 +1141,16 @@ class UIFlexListbox extends UIDiv {
   setValue(value) {
     this.selectedValue = value;
 
+    for (let i = 0; i < this.listitems.length; i++) {
+      const element = this.listitems[i];
+
+      if (element.getId() === value.id) {
+        element.addClass("selected");
+      } else {
+        element.removeClass("selected");
+      }
+    }
+
     const changeEvent = new Event("change", {
       bubbles: true,
       cancelable: true,

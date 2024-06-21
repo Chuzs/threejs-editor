@@ -873,6 +873,7 @@ function Strings(config) {
       "menubar/status/autosave": "自动保存",
       "menubar/status/preview": "预览",
       "menubar/status/save": "保存",
+      "menubar/status/child_select": "鼠标是否可以选中模型子构件",
 
       "menubar/view": "视图",
       "menubar/view/fullscreen": "全屏",
@@ -1165,7 +1166,7 @@ function Strings(config) {
       "leftbar/hotspot/add/image": "图片",
       "leftbar/hotspot/add/video": "视频",
       "leftbar/hotspot/list": "热点列表",
-      "leftbar/create": "创建",
+      "leftbar/create": "建造",
 
       "toolbar/translate": "移动",
       "toolbar/rotate": "旋转",
@@ -1185,8 +1186,9 @@ function Strings(config) {
       "viewport/info/samples": "样本",
       "viewport/info/rendertime": "渲染时间",
 
-      "viewport/toolbar/child_select": "鼠标是否可以选中模型子构件",
       "viewport/toolbar/reset": "重置相机",
+      "viewport/toolbar/select": "选择工具：单击选择模型",
+      "viewport/toolbar/point": "点摆放：选择模型后单击场景摆放",
     },
 
     ja: {
