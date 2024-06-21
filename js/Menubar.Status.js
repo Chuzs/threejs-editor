@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { UIPanel, UIText } from "./libs/ui.js";
+import { UIButton, UIDiv, UIPanel, UISpan, UIText } from "./libs/ui.js";
 import { UIBoolean } from "./libs/ui.three.js";
 
 function MenubarStatus(editor) {
@@ -8,16 +8,25 @@ function MenubarStatus(editor) {
 
   const container = new UIPanel();
   container.setClass("menu right");
-
-  const preview = new UIText(strings.getKey("menubar/status/preview"));
-  preview.dom.style.cursor = "pointer";
-  preview.onClick(() => {
+  const previewBtn = new UIButton();
+  previewBtn.setTextContent(strings.getKey("menubar/status/preview"));
+  previewBtn.onClick(() => {
     editor.signals.savingStarted.dispatch();
     editor.storage.set(editor.toJSON());
     editor.signals.savingFinished.dispatch();
     window.open("preview.html");
   });
-  container.add(preview);
+  container.add(previewBtn);
+
+  const saveBtn = new UIButton();
+  saveBtn.setTextContent(strings.getKey("menubar/status/save"));
+  saveBtn.onClick(() => {
+    editor.signals.savingStarted.dispatch();
+    editor.storage.set(editor.toJSON());
+    editor.signals.savingFinished.dispatch();
+  });
+  container.add(saveBtn);
+  // container.add(preview);
 
   const autosave = new UIBoolean(
     editor.config.getKey("autosave"),
@@ -33,7 +42,7 @@ function MenubarStatus(editor) {
       editor.signals.sceneGraphChanged.dispatch();
     }
   });
-  container.add(autosave);
+  // container.add(autosave);
 
   editor.signals.savingStarted.add(function () {
     autosave.text.setTextDecoration("underline");

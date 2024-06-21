@@ -872,6 +872,7 @@ function Strings(config) {
 
       "menubar/status/autosave": "自动保存",
       "menubar/status/preview": "预览",
+      "menubar/status/save": "保存",
 
       "menubar/view": "视图",
       "menubar/view/fullscreen": "全屏",
