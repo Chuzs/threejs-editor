@@ -70,7 +70,7 @@ function Toolbar(editor) {
     }
   });
 
-  signals.showLeftbarChange.add((showLeftbar) => {
+  signals.showLeftbarChanged.add((showLeftbar) => {
     container.setStyle("left", [showLeftbar ? "360px" : "10px"]);
     signals.windowResize.dispatch();
   });

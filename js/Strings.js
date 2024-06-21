@@ -1165,6 +1165,7 @@ function Strings(config) {
       "leftbar/hotspot/add/image": "图片",
       "leftbar/hotspot/add/video": "视频",
       "leftbar/hotspot/list": "热点列表",
+      "leftbar/create": "创建",
 
       "toolbar/translate": "移动",
       "toolbar/rotate": "旋转",

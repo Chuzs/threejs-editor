@@ -43,7 +43,7 @@ function Resizer(editor) {
   }
 
   dom.addEventListener("pointerdown", onPointerDown);
-  signals.showSidebarChange.add((showSidebar) => {
+  signals.showSidebarChanged.add((showSidebar) => {
     dom.hidden = !showSidebar;
   });
   return new UIElement(dom);

@@ -371,6 +371,12 @@ select:hover {
 #menubar .menu.right button {
   margin-right: 5px;
 }
+#menubar .menu.right button.active {
+  background-color: #fff;
+}
+#menubar .menu.right button img {
+  width: 1em;
+}
 
 #menubar .menu .title {
   display: inline-block;
@@ -579,8 +585,9 @@ select:hover {
   height: 32px;
   cursor: pointer;
 }
-#viewportToolbar button:hover {
-  background-color: #eee;
+#viewportToolbar button:hover,
+#viewportToolbar button.active {
+  background-color: #fff;
 }
 #viewportToolbar input {
   width: 12px;

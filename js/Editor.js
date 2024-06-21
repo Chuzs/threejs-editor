@@ -91,8 +91,9 @@ function Editor() {
     intersectionsDetected: new Signal(),
 
     pathTracerUpdated: new Signal(),
-    showLeftbarChange: new Signal(),
-    showSidebarChange: new Signal(),
+    showLeftbarChanged: new Signal(),
+    showSidebarChanged: new Signal(),
+    selectModeChanged: new Signal(),
   };
 
   this.config = new Config();
@@ -143,6 +144,7 @@ function Editor() {
 
   this.enableSelect = true;
   this.enableChildSelect = true;
+  this.enablePoint = false;
   this.showViewportToolbar = true;
   this.showLeftbar = true;
   this.showSidebar = true;

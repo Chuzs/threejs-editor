@@ -217,10 +217,12 @@ function Viewport(editor) {
     onUpPosition.fromArray(array);
     handleClick();
     console.log(event);
-    if (event.button === 0) {
-      onMouseLeftClick(event);
-    } else if (event.button === 2) {
-      onMouseRightClick(event);
+    if (editor.enablePoint) {
+      if (event.button === 0) {
+        onMouseLeftClick(event);
+      } else if (event.button === 2) {
+        onMouseRightClick(event);
+      }
     }
     document.removeEventListener("mouseup", onMouseUp);
   }
@@ -1065,11 +1067,11 @@ function Viewport(editor) {
 
   signals.cameraResetted.add(updateAspectRatio);
 
-  signals.showLeftbarChange.add((showLeftbar) => {
+  signals.showLeftbarChanged.add((showLeftbar) => {
     container.setStyle("left", [showLeftbar ? "350px" : 0]);
     signals.windowResize.dispatch();
   });
-  signals.showSidebarChange.add((showSidebar) => {
+  signals.showSidebarChanged.add((showSidebar) => {
     container.setStyle("right", [showSidebar ? "350px" : 0]);
     signals.windowResize.dispatch();
   });

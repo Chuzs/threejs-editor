@@ -33,28 +33,6 @@ const modelList = [
     decomposeName: "glb-29",
   },
   {
-    name: "地板",
-    key: "glb-30",
-    fileType: "glb",
-    id: 30,
-    animation: false,
-    filePath: "models/glb/glb-30.glb",
-    // coverUrl: "images/model-icon/20.png",
-    modelType: "model",
-    decomposeName: "glb-30",
-  },
-  {
-    name: "墙",
-    key: "glb-31",
-    fileType: "glb",
-    id: 30,
-    animation: false,
-    filePath: "models/glb/glb-31.glb",
-    // coverUrl: "images/model-icon/20.png",
-    modelType: "model",
-    decomposeName: "glb-31",
-  },
-  {
     id: "12523",
     anchor_id: "0",
     cid: "2355",
@@ -783,6 +761,30 @@ const modelList = [
     filePath: "models/glb/table.glb",
     coverUrl: "images/model-icon/667139852ce5b.png",
     categoryName: "桌子",
+  },
+];
+const materialList = [
+  {
+    name: "地板",
+    key: "glb-30",
+    fileType: "glb",
+    id: 30,
+    animation: false,
+    filePath: "models/glb/glb-30.glb",
+    // coverUrl: "images/model-icon/20.png",
+    modelType: "model",
+    decomposeName: "glb-30",
+  },
+  {
+    name: "墙",
+    key: "glb-31",
+    fileType: "glb",
+    id: 30,
+    animation: false,
+    filePath: "models/glb/glb-31.glb",
+    // coverUrl: "images/model-icon/20.png",
+    modelType: "model",
+    decomposeName: "glb-31",
   },
 ];
 
@@ -2113,4 +2115,10 @@ const hotspotVideoList = [
   },
 ];
 
-export { modelList, geometryModelList, hotspotImageList, hotspotVideoList };
+export {
+  modelList,
+  geometryModelList,
+  hotspotImageList,
+  hotspotVideoList,
+  materialList,
+};

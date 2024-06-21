@@ -1,3 +1,4 @@
+import { LeftbarCreate } from "./Leftbar.Create.js";
 import { LeftbarModel } from "./Leftbar.Model.js";
 import { LeftbarHotspot } from "./Leftbar.hotspot.js";
 import { UITabbedPanel } from "./libs/ui.js";
@@ -22,9 +23,11 @@ function Leftbar(editor) {
   const hotspot = new LeftbarHotspot(editor);
   container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);
 
+  const create = new LeftbarCreate(editor);
+  container.addTab("create", strings.getKey("leftbar/create"), create);
   container.select("model");
 
-  signals.showLeftbarChange.add((showLeftbar) => {
+  signals.showLeftbarChanged.add((showLeftbar) => {
     container.setHidden(!showLeftbar);
   });
   return container;

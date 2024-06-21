@@ -23,7 +23,7 @@ function Sidebar(editor) {
   container.addTab("project", strings.getKey("sidebar/project"), project);
   container.addTab("settings", strings.getKey("sidebar/settings"), settings);
   container.select("scene");
-  signals.showSidebarChange.add((showSidebar) => {
+  signals.showSidebarChanged.add((showSidebar) => {
     container.setHidden(!showSidebar);
   });
   return container;

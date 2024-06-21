@@ -76,7 +76,7 @@ class Selector {
   }
   getIntersectObjectParentIsScene(point, camera) {
     const intersects = this.getPointerIntersects(point, camera);
-    if (intersects.length > 0 && editor.enableSelect) {
+    if (intersects.length > 0 && editor.enablePoint) {
       const object = intersects[0].object;
       return this.findParentIsScene(object);
     }

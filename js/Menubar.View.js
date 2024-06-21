@@ -49,7 +49,7 @@ function MenubarView(editor) {
     .onClick(function () {
       editor.showLeftbar = !editor.showLeftbar;
       this.toggleClass("toggle-on", editor.showLeftbar);
-      signals.showLeftbarChange.dispatch(editor.showLeftbar);
+      signals.showLeftbarChanged.dispatch(editor.showLeftbar);
     })
     .toggleClass("toggle-on", editor.showLeftbar);
   options.add(option);
@@ -62,7 +62,7 @@ function MenubarView(editor) {
     .onClick(function () {
       editor.showSidebar = !editor.showSidebar;
       this.toggleClass("toggle-on", editor.showSidebar);
-      signals.showSidebarChange.dispatch(editor.showSidebar);
+      signals.showSidebarChanged.dispatch(editor.showSidebar);
     })
     .toggleClass("toggle-on", editor.showSidebar);
   options.add(option);

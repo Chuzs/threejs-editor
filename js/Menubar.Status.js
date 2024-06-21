@@ -8,6 +8,21 @@ function MenubarStatus(editor) {
 
   const container = new UIPanel();
   container.setClass("menu right");
+
+  const childIcon = document.createElement("img");
+  childIcon.title = strings.getKey("viewport/toolbar/child_select");
+  childIcon.src = "images/child.svg";
+
+  const child = new UIButton();
+  child.dom.className = "Button child active";
+  child.dom.appendChild(childIcon);
+  child.dom.addEventListener("mousedown", function (e) {
+    e.stopPropagation();
+    editor.enableChildSelect = !editor.enableChildSelect;
+    child.toggleClass("active", editor.enableChildSelect);
+  });
+  container.add(child);
+
   const previewBtn = new UIButton();
   previewBtn.setTextContent(strings.getKey("menubar/status/preview"));
   previewBtn.onClick(() => {

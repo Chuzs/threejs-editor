@@ -43,7 +43,7 @@ function ResizerLeft(editor) {
   dom.addEventListener("pointerdown", onPointerDown);
 
   signals.windowResize.dispatch();
-  signals.showLeftbarChange.add((showLeftbar) => {
+  signals.showLeftbarChanged.add((showLeftbar) => {
     dom.hidden = !showLeftbar;
   });
   return new UIElement(dom);
