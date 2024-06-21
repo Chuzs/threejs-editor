@@ -74,7 +74,13 @@ class Selector {
 
     return this.getIntersects(raycaster);
   }
-
+  getIntersectObjectParentIsScene(point, camera) {
+    const intersects = this.getPointerIntersects(point, camera);
+    if (intersects.length > 0 && editor.enableSelect) {
+      const object = intersects[0].object;
+      return this.findParentIsScene(object);
+    }
+  }
   getDropPointerIntersects(point, camera) {
     mouse.set(point.x * 2 - 1, -(point.y * 2) + 1);
 

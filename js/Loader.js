@@ -734,6 +734,30 @@ function Loader(editor) {
       });
   };
 
+  this.loadAsyncModel = async function (model) {
+    return new Promise(async (resolve, reject) => {
+      switch (model.fileType) {
+        case "glb":
+          const loader = await createGLTFLoader();
+
+          loader.load(model.filePath, function (result) {
+            const scene = result.scene;
+            scene.name = filename;
+
+            scene.animations.push(...result.animations);
+
+            resolve(scene);
+            loader.dracoLoader.dispose();
+            loader.ktx2Loader.dispose();
+          });
+          break;
+
+        default:
+          break;
+      }
+    });
+  };
+
   function handleJSON(data) {
     if (data.metadata === undefined) {
       // 2.0

@@ -52,12 +52,12 @@ function Viewport(editor) {
 
   const grid = new THREE.Group();
 
-  const grid1 = new THREE.GridHelper(30, 30);
+  const grid1 = new THREE.GridHelper(30 * 10, 30 * 10);
   grid1.material.color.setHex(GRID_COLORS_LIGHT[0]);
   grid1.material.vertexColors = false;
   grid.add(grid1);
 
-  const grid2 = new THREE.GridHelper(30, 6);
+  const grid2 = new THREE.GridHelper(30 * 10, 6 * 10);
   grid2.material.color.setHex(GRID_COLORS_LIGHT[1]);
   grid2.material.vertexColors = false;
   grid.add(grid2);
@@ -193,9 +193,6 @@ function Viewport(editor) {
   }
 
   function handleClick() {
-    let a = selector.getDropPointerIntersects(onUpPosition, camera);
-    console.log(a);
-    // selector.select(a[0]);
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
       console.log(intersects);
@@ -219,7 +216,12 @@ function Viewport(editor) {
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
     handleClick();
-    onClick(event);
+    console.log(event);
+    if (event.button === 0) {
+      onMouseLeftClick(event);
+    } else if (event.button === 2) {
+      onMouseRightClick(event);
+    }
     document.removeEventListener("mouseup", onMouseUp);
   }
 
@@ -285,8 +287,21 @@ function Viewport(editor) {
       signals.objectFocused.dispatch(intersect.object);
     }
   }
+  function onMouseRightClick(event) {
+    if (onDownPosition.distanceTo(onUpPosition) === 0) {
+      const object = selector.getIntersectObjectParentIsScene(
+        onUpPosition,
+        camera
+      );
+      console.log(object);
+      if (object) {
+        editor.removeObject(object);
+        editor.deselect();
+      }
+    }
+  }
 
-  async function onClick(event) {
+  async function onMouseLeftClick(event) {
     const dragModel = editor.dragModel;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
@@ -294,23 +309,33 @@ function Viewport(editor) {
     if (intersects.length > 0) {
       let closestObject = null;
       let closestDistance = Infinity;
+      console.log(scene.children);
       scene.children.forEach((otherObject) => {
-        const distance = intersects[0].object.position.distanceTo(
-          otherObject.position
-        );
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestObject = otherObject;
+        if (!otherObject.isLight) {
+          const distance = intersects[0].point.distanceTo(otherObject.position);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestObject = otherObject;
+          }
         }
       });
 
       if (closestObject) {
+        let size = new THREE.Box3()
+          .setFromObject(closestObject)
+          .getSize(new THREE.Vector3());
+        console.log("🚀 ~ onMouseLeftClick ~ size:", size);
+
         // 这里可以根据需要调整吸附的距离
-        const snapDistance = 1; // 吸附距离
-        const direction = intersects[0].object.position
+        const direction = intersects[0].point
           .clone()
-          .sub(closestObject.position)
-          .setLength(snapDistance);
+          .sub(closestObject.position);
+
+        if (Math.abs(direction.x) > Math.abs(direction.z)) {
+          direction.setZ(0).setLength(size.x);
+        } else {
+          direction.setX(0).setLength(size.z);
+        }
         dragModel.point = closestObject.position.clone().add(direction);
         console.log(closestObject.position.clone().add(direction));
       } else {
@@ -319,15 +344,34 @@ function Viewport(editor) {
     }
     // 如果是几何体模型拖拽
     if (dragModel.modelType && dragModel.modelType == "geometry") {
-      await addGeometry(dragModel);
+      addGeometry(dragModel);
     } else if (dragModel.modelType && dragModel.modelType == "model") {
-      await addModel(dragModel);
+      addModel(dragModel);
     } else if (dragModel.modelType && dragModel.modelType == "hotspot") {
       addHotspot(dragModel, intersects);
     }
     editor.deselect();
   }
 
+  function getDistance(meshA, meshB) {
+    const boxA = new THREE.Box3().setFromObject(meshA);
+    const boxB = new THREE.Box3().setFromObject(meshB);
+
+    // 计算两个边界盒子的中心点
+    const centerA = new THREE.Vector3();
+    const centerB = new THREE.Vector3();
+    boxA.getCenter(centerA);
+    boxB.getCenter(centerB);
+
+    // 使用中心点计算最小外接矩形（AABB）
+    const aabb = new THREE.Box2();
+    aabb.setFromPoints(centerA, centerB);
+
+    // 计算距离
+    const distance = aabb.getSize(new THREE.Vector2()).length() / 2;
+    console.log(distance);
+    return distance;
+  }
   function onDrop(event) {
     const dragModel = editor.dragModel;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
