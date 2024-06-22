@@ -318,9 +318,7 @@ function Viewport(editor) {
           .setFromObject(closestObject)
           .getSize(new THREE.Vector3());
         // console.log("🚀 ~ onMouseLeftClick ~ closestObjectSize:", closestObjectSize);
-        const direction = intersects[0].point
-          .clone()
-          .sub(closestObject.position);
+        let direction = intersects[0].point.clone().sub(closestObject.position);
         const { x, y, z } = direction.clone();
         if (dragModel.direction === "horizon") {
           if (Math.abs(x) > Math.abs(z)) {
@@ -337,9 +335,23 @@ function Viewport(editor) {
             "direction",
             intersects[0].point.clone().sub(closestObject.position)
           );
-          if (condition) {
-          }
-          if (Math.abs(x) > Math.abs(z)) {
+          console.log(intersects, closestObject);
+          if (intersects[0].normal && intersects[0].normal.y === 1) {
+            if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
+              direction = intersects[0].normal
+                .clone()
+                .setLength(closestObjectSize.y);
+              dragModel.rotation = {
+                x: 0,
+                y: THREE.MathUtils.degToRad(90),
+                z: 0,
+              };
+            } else {
+              direction = intersects[0].normal
+                .clone()
+                .setLength(closestObjectSize.y);
+            }
+          } else if (Math.abs(x) > Math.abs(z)) {
             if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
               direction
                 .setZ(0)
