@@ -255,7 +255,12 @@ function Loader(editor) {
                 const { x, y, z } = model.point;
                 scene.position.set(x, y, z);
               }
-              console.log(scene);
+              if (model && model.rotation) {
+                const { x, y, z } = model.rotation;
+                scene.rotateX(x);
+                scene.rotateY(y);
+                scene.rotateZ(z);
+              }
               editor.execute(new AddObjectCommand(editor, scene));
 
               loader.dracoLoader.dispose();

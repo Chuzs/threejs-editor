@@ -1152,10 +1152,12 @@ class UIFlexListbox extends UIDiv {
     }
 
     const changeEvent = new Event("change", {
-      bubbles: true,
+      bubbles: false,
       cancelable: true,
     });
-    this.dom.dispatchEvent(changeEvent);
+    if (value.id) {
+      this.dom.dispatchEvent(changeEvent);
+    }
   }
   getMode() {
     return this.selectedMode;

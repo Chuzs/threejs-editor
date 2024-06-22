@@ -9,7 +9,7 @@ function LeftbarCreate(editor) {
   });
   flexListbox.setItems(materialList);
   container.add(flexListbox);
-
+  container.flexListbox = flexListbox;
   return container;
 }
 

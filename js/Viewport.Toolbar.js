@@ -30,6 +30,7 @@ function ViewportToolbar(editor) {
   select.dom.appendChild(selectIcon);
   select.dom.addEventListener("mousedown", function (e) {
     e.stopPropagation();
+    editor.enablePoint = false;
     signals.selectModeChanged.dispatch("select");
   });
   container.add(select);

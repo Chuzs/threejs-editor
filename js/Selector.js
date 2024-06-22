@@ -91,7 +91,9 @@ class Selector {
 
   getDropIntersects(raycaster) {
     const objects = [];
-
+    this.editor.scene.traverseVisible(function (child) {
+      objects.push(child);
+    });
     this.editor.sceneHelpers.traverseVisible(function (child) {
       if (child.type === "GridHelper") objects.push(child);
     });

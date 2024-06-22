@@ -15,11 +15,16 @@ function Leftbar(editor) {
   const model = new LeftbarModel(editor);
   container
     .addTab("model", strings.getKey("leftbar/model"), model)
-    .onChange(() => {
+    .onChange((e) => {
       if (container.selected != "model") {
         editor.deselect();
       }
-      editor.enableSelect = container.selected === "model";
+      if (container.selected != "create") {
+        create.flexListbox.setValue({});
+      }
+      editor.enableSelect = container.selected != "hotspot";
+      editor.dragModel = null;
+      console.log(e);
     });
 
   const hotspot = new LeftbarHotspot(editor);

@@ -229,7 +229,6 @@ class EditorControls extends THREE.EventDispatcher {
     }
 
     function onKeyDown(event) {
-      console.log(event.code);
       switch (event.code) {
         case "ArrowUp":
         case "KeyW":
