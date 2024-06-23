@@ -81,21 +81,22 @@ class Selector {
       return this.findParentIsScene(object);
     }
   }
-  getDropPointerIntersects(point, camera) {
+  getPointerIntersectsIncludeGridHelp(point, camera) {
     mouse.set(point.x * 2 - 1, -(point.y * 2) + 1);
 
     raycaster.setFromCamera(mouse, camera);
 
-    return this.getDropIntersects(raycaster);
+    return this.getIntersectsIncludeGridHelp(raycaster);
   }
 
-  getDropIntersects(raycaster) {
+  getIntersectsIncludeGridHelp(raycaster) {
     const objects = [];
     this.editor.scene.traverseVisible(function (child) {
       objects.push(child);
     });
     this.editor.sceneHelpers.traverseVisible(function (child) {
-      if (child.type === "GridHelper") objects.push(child);
+      if (child.type === "GridHelper" || child.name === "picker")
+        objects.push(child);
     });
 
     return raycaster.intersectObjects(objects, false);

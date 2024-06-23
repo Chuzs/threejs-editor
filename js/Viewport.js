@@ -229,25 +229,51 @@ function Viewport(editor) {
     if (event.target !== renderer.domElement) return;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onMovePosition.fromArray(array);
-    // console.log(editor.dragModel);
-    const intersects = selector.getPointerIntersects(onMovePosition, camera);
+    const intersects = selector.getPointerIntersectsIncludeGridHelp(
+      onMovePosition,
+      camera
+    );
     if (intersects.length > 0) {
+      if (!editor.dragModel) return;
       const intersect = intersects[0];
-      if (
-        editor.mediaPlayer.mesh === intersect.object &&
-        intersect.object.children.length > 0 &&
-        intersect.object.children[0].name === "play_video" &&
-        editor.videoState === "play"
-      ) {
-        intersect.object.children[0].visible = true;
+      togglePlayIcon(intersect);
+      updateDragModel(intersects);
+      if (editor.toAddMesh) {
+        if (editor.dragModel.point) {
+          const { x, y, z } = editor.dragModel.point;
+          editor.toAddMesh.position.set(x, y, z);
+        }
+        if (editor.dragModel.rotation) {
+          const { x, y, z } = editor.dragModel.rotation;
+          editor.toAddMesh.rotation.x = x;
+          editor.toAddMesh.rotation.y = y;
+          editor.toAddMesh.rotation.z = z;
+        }
+        if (editor.enablePoint) {
+          selectionBox.box.setFromObject(editor.toAddMesh);
+          selectionBox.visible = true;
+        }
+      } else {
+        selectionBox.visible = false;
       }
-      if (
-        editor.mediaPlayer.mesh != intersect.object &&
-        intersect.object.name != "play_video" &&
-        editor.videoState === "play"
-      ) {
-        editor.mediaPlayer.mesh.children[0].visible = false;
-      }
+    }
+  }
+
+  function togglePlayIcon(intersect) {
+    if (
+      editor.mediaPlayer.mesh === intersect.object &&
+      intersect.object.children.length > 0 &&
+      intersect.object.children[0].name === "play_video" &&
+      editor.videoState === "play"
+    ) {
+      intersect.object.children[0].visible = true;
+    }
+    if (
+      editor.mediaPlayer.mesh != intersect.object &&
+      intersect.object.name != "play_video" &&
+      editor.videoState === "play"
+    ) {
+      editor.mediaPlayer.mesh.children[0].visible = false;
     }
   }
 
@@ -299,21 +325,40 @@ function Viewport(editor) {
       }
     }
   }
-  signals.objectAdded.add(() => {
-    editor.dragModel.point = null;
-    editor.dragModel.rotation = null;
-  });
-  async function onMouseLeftClick(event) {
+
+  function onMouseLeftClick(event) {
     const dragModel = editor.dragModel;
     if (!dragModel) return;
-
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
-    const intersects = selector.getDropPointerIntersects(onUpPosition, camera);
-    if (intersects.length > 0) {
-      let closestObject = getCloestObject(intersects);
+    const intersects = selector.getPointerIntersectsIncludeGridHelp(
+      onUpPosition,
+      camera
+    );
+    if (dragModel.modelType && dragModel.modelType == "geometry") {
+      addGeometry(dragModel);
+    } else if (dragModel.modelType && dragModel.modelType == "model") {
+      addModel(dragModel);
+    } else if (dragModel.modelType && dragModel.modelType == "hotspot") {
+      addHotspot(dragModel, intersects);
+    }
+    editor.deselect();
+  }
+  function updateDragModel(intersects) {
+    const dragModel = editor.dragModel;
 
-      if (closestObject) {
+    if (!dragModel) return;
+    dragModel.rotation = { x: 0, y: 0, z: 0 };
+    dragModel.point = null;
+    if (intersects.length > 0) {
+      // 获取最近的同类型模型对象
+      let closestObject = getCloestObject(intersects, dragModel);
+
+      if (closestObject && editor.editMode === "create") {
+        if (!editor.toAddMesh) {
+          editor.toAddMesh = closestObject.clone();
+          editor.toAddMesh.rotation.y = 0;
+        }
         let closestObjectSize = new THREE.Box3()
           .setFromObject(closestObject)
           .getSize(new THREE.Vector3());
@@ -321,22 +366,38 @@ function Viewport(editor) {
         let direction = intersects[0].point.clone().sub(closestObject.position);
         const { x, y, z } = direction.clone();
         if (dragModel.direction === "horizon") {
+          // 距离x轴近
           if (Math.abs(x) > Math.abs(z)) {
             direction.setZ(0).setLength(closestObjectSize.x);
           } else {
             direction.setX(0).setLength(closestObjectSize.z);
           }
         } else {
-          console.log("intersect", intersects[0]);
-          console.log("closestSize", closestObjectSize);
-          console.log("point", intersects[0].point.clone());
-          console.log("closest", closestObject.position);
-          console.log(
-            "direction",
-            intersects[0].point.clone().sub(closestObject.position)
-          );
-          console.log(intersects, closestObject);
+          // console.log("intersect", intersects[0]);
+          // console.log("closestSize", closestObjectSize);
+          // console.log("point", intersects[0].point.clone());
+          // console.log("closest", closestObject.position);
+          // console.log(
+          //   "direction",
+          //   intersects[0].point.clone().sub(closestObject.position)
+          // );
+          // console.log(intersects, closestObject);
           if (intersects[0].normal && intersects[0].normal.y === 1) {
+            if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
+              direction = intersects[0].normal
+                .clone()
+                .setLength(closestObjectSize.y);
+              dragModel.rotation = {
+                x: 0,
+                y: THREE.MathUtils.degToRad(90),
+                z: 0,
+              };
+            } else {
+              direction = intersects[0].normal
+                .clone()
+                .setLength(closestObjectSize.y);
+            }
+          } else if (intersects[0].normal && intersects[0].normal.y === 1) {
             if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
               direction = intersects[0].normal
                 .clone()
@@ -415,24 +476,19 @@ function Viewport(editor) {
         }
       }
     }
-    // 如果是几何体模型拖拽
-    if (dragModel.modelType && dragModel.modelType == "geometry") {
-      addGeometry(dragModel);
-    } else if (dragModel.modelType && dragModel.modelType == "model") {
-      addModel(dragModel);
-    } else if (dragModel.modelType && dragModel.modelType == "hotspot") {
-      addHotspot(dragModel, intersects);
-    }
-    editor.deselect();
   }
 
-  function getCloestObject(intersects) {
+  function getCloestObject(intersects, dragModel) {
     let closestObject = null;
     let closestDistance = Infinity;
     scene.children.forEach((otherObject) => {
       if (!otherObject.isLight) {
         const distance = intersects[0].point.distanceTo(otherObject.position);
-        if (distance < closestDistance) {
+        // 只返回同样材质的最近模型对象
+        if (
+          distance < closestDistance &&
+          otherObject.userData.id === dragModel.id
+        ) {
           closestDistance = distance;
           closestObject = otherObject;
         }
@@ -441,25 +497,6 @@ function Viewport(editor) {
     return closestObject;
   }
 
-  function getDistance(meshA, meshB) {
-    const boxA = new THREE.Box3().setFromObject(meshA);
-    const boxB = new THREE.Box3().setFromObject(meshB);
-
-    // 计算两个边界盒子的中心点
-    const centerA = new THREE.Vector3();
-    const centerB = new THREE.Vector3();
-    boxA.getCenter(centerA);
-    boxB.getCenter(centerB);
-
-    // 使用中心点计算最小外接矩形（AABB）
-    const aabb = new THREE.Box2();
-    aabb.setFromPoints(centerA, centerB);
-
-    // 计算距离
-    const distance = aabb.getSize(new THREE.Vector2()).length() / 2;
-    console.log(distance);
-    return distance;
-  }
   function onDrop(event) {
     const dragModel = editor.dragModel;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
@@ -742,8 +779,14 @@ function Viewport(editor) {
   function coordinateToVector3(e) {
     return new THREE.Vector3(Number(e.x), Number(e.y), Number(e.z));
   }
+  function onMouseOut(event) {
+    if (editor.selectMode === "point") {
+      selectionBox.visible = false;
+    }
+  }
   container.dom.addEventListener("drop", onDrop);
   container.dom.addEventListener("mousemove", onMouseMove);
+  container.dom.addEventListener("mouseout", onMouseOut);
   container.dom.addEventListener("mousedown", onMouseDown);
   container.dom.addEventListener("touchstart", onTouchStart, {
     passive: false,
@@ -762,6 +805,22 @@ function Viewport(editor) {
 
   // signals
 
+  signals.objectAdded.add(() => {
+    editor.dragModel.point = null;
+    editor.dragModel.rotation = { x: 0, y: 0, z: 0 };
+    // editor.toAddMesh = null;
+  });
+  signals.selectModeChanged.add(function (mode) {
+    switch (mode) {
+      case "point":
+        transformControls.detach();
+        selectionBox.visible = false;
+        break;
+      case "select":
+        selectionBox.visible = false;
+        break;
+    }
+  });
   signals.editorCleared.add(function () {
     controls.center.set(0, 0, 0);
     pathtracer.reset();
@@ -870,7 +929,6 @@ function Viewport(editor) {
       !editor.enablePoint
     ) {
       box.setFromObject(object, true);
-
       if (box.isEmpty() === false) {
         selectionBox.visible = true;
       }

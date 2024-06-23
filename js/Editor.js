@@ -143,11 +143,13 @@ function Editor() {
   this.selected = null;
 
   this.enableSelect = true;
-  this.enableChildSelect = true;
+  this.enableChildSelect = false;
   this.enablePoint = false;
   this.showViewportToolbar = true;
   this.showLeftbar = true;
   this.showSidebar = true;
+  this.toAddMesh = null;
+  this.editMode = "create";
   this.helpers = {};
 
   this.cameras = {};

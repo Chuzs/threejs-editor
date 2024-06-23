@@ -14,7 +14,7 @@ function MenubarStatus(editor) {
   childIcon.src = "images/child.svg";
 
   const child = new UIButton();
-  child.dom.className = "Button child active";
+  child.dom.className = "Button child";
   child.dom.appendChild(childIcon);
   child.dom.addEventListener("mousedown", function (e) {
     e.stopPropagation();

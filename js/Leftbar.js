@@ -22,9 +22,10 @@ function Leftbar(editor) {
       if (container.selected != "create") {
         create.flexListbox.setValue({});
       }
+      editor.editMode = container.selected;
       editor.enableSelect = container.selected != "hotspot";
       editor.dragModel = null;
-      console.log(e);
+      editor.toAddMesh = null;
     });
 
   const hotspot = new LeftbarHotspot(editor);

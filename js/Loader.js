@@ -257,10 +257,11 @@ function Loader(editor) {
               }
               if (model && model.rotation) {
                 const { x, y, z } = model.rotation;
-                scene.rotateX(x);
-                scene.rotateY(y);
-                scene.rotateZ(z);
+                scene.rotation.x = x;
+                scene.rotation.y = y;
+                scene.rotation.z = z;
               }
+              scene.userData.id = model.id;
               editor.execute(new AddObjectCommand(editor, scene));
 
               loader.dracoLoader.dispose();
@@ -747,7 +748,7 @@ function Loader(editor) {
 
           loader.load(model.filePath, function (result) {
             const scene = result.scene;
-            scene.name = filename;
+            scene.name = model.name;
 
             scene.animations.push(...result.animations);
 

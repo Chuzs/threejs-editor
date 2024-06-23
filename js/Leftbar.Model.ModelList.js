@@ -8,6 +8,9 @@ function LeftbarModelList(editor) {
 
   const flexListbox = new UIFlexListbox().onChange((e) => {
     editor.dragModel = flexListbox.getValue();
+    editor.loader.loadAsyncModel(editor.dragModel).then((res) => {
+      editor.toAddMesh = res;
+    });
   });
   flexListbox.setItems(modelList);
   container.add(flexListbox);

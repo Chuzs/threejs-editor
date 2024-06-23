@@ -11,7 +11,7 @@ class EditorControls extends THREE.EventDispatcher {
     this.panSpeed = 0.002;
     this.zoomSpeed = 0.1;
     this.rotationSpeed = 0.005;
-    this.movementSpeed = 2.0;
+    this.movementSpeed = 20;
 
     this.moveForward = false;
     this.moveBackward = false;
@@ -70,7 +70,6 @@ class EditorControls extends THREE.EventDispatcher {
 
       delta.multiplyScalar(distance * scope.panSpeed);
       delta.applyMatrix3(normalMatrix.getNormalMatrix(object.matrix));
-
       object.position.add(delta);
       center.add(delta);
 
@@ -292,17 +291,22 @@ class EditorControls extends THREE.EventDispatcher {
 
     this.update = function (delta) {
       if (this.enabled === false) return;
-
+      let oldPosition = object.position.clone();
       const actualMoveSpeed = delta * this.movementSpeed;
 
       if (this.moveForward) object.translateZ(-actualMoveSpeed);
+
       if (this.moveBackward) object.translateZ(actualMoveSpeed);
 
       if (this.moveLeft) object.translateX(-actualMoveSpeed);
       if (this.moveRight) object.translateX(actualMoveSpeed);
 
       if (this.moveUp) object.translateY(actualMoveSpeed);
+
       if (this.moveDown) object.translateY(-actualMoveSpeed);
+
+      this.center.add(object.position.clone().sub(oldPosition));
+      scope.dispatchEvent(changeEvent);
     };
 
     function contextmenu(event) {
