@@ -352,7 +352,7 @@ function Viewport(editor) {
     dragModel.point = null;
     if (intersects.length > 0) {
       // 获取最近的同类型模型对象
-      let closestObject = getCloestObject(intersects, dragModel);
+      let closestObject = getCloestObject(intersects, "id", dragModel.id);
 
       if (closestObject && editor.editMode === "create") {
         if (!editor.toAddMesh) {
@@ -365,13 +365,14 @@ function Viewport(editor) {
         // console.log("🚀 ~ onMouseLeftClick ~ closestObjectSize:", closestObjectSize);
         let direction = intersects[0].point.clone().sub(closestObject.position);
         const { x, y, z } = direction.clone();
-        if (dragModel.direction === "horizon") {
+        if (dragModel.direction === "horizontal") {
           // 距离x轴近
           if (Math.abs(x) > Math.abs(z)) {
             direction.setZ(0).setLength(closestObjectSize.x);
           } else {
             direction.setX(0).setLength(closestObjectSize.z);
           }
+          direction.setY(0);
         } else {
           // console.log("intersect", intersects[0]);
           // console.log("closestSize", closestObjectSize);
@@ -467,28 +468,43 @@ function Viewport(editor) {
           }
         }
         dragModel.point = closestObject.position.clone().add(direction);
-        // console.log(closestObject.position.clone().add(direction));
       } else {
-        dragModel.point = intersects[0].point;
-        // todo 垂直摆放时y轴向上移动半个高度
-        if (dragModel.direction === "vertical") {
-          dragModel.point.y;
+        dragModel.point = intersects[0].point.clone();
+        let toAddMeshSize = new THREE.Box3()
+          .setFromObject(editor.toAddMesh)
+          .getSize(new THREE.Vector3());
+        if (dragModel.direction === "vertical" && editor.toAddMesh) {
+          // 吸附辅助线
+          dragModel.point.x += 0.5;
+          dragModel.point.z -= toAddMeshSize.z / 2;
+        }
+        if (
+          dragModel.direction === "horizontal" &&
+          dragModel.position === "top"
+        ) {
+          closestObject = getCloestObject(intersects, "direction", "vertical");
+          if (closestObject) {
+            let closestObjectSize = new THREE.Box3()
+              .setFromObject(closestObject)
+              .getSize(new THREE.Vector3());
+            dragModel.point = closestObject.position.clone();
+            dragModel.point.y += closestObjectSize.y;
+            dragModel.point.x += toAddMeshSize.x / 2 - closestObjectSize.x / 2;
+            dragModel.point.z -= toAddMeshSize.z / 2 - closestObjectSize.z / 2;
+          }
         }
       }
     }
   }
 
-  function getCloestObject(intersects, dragModel) {
+  function getCloestObject(intersects, key, value) {
     let closestObject = null;
     let closestDistance = Infinity;
     scene.children.forEach((otherObject) => {
       if (!otherObject.isLight) {
         const distance = intersects[0].point.distanceTo(otherObject.position);
         // 只返回同样材质的最近模型对象
-        if (
-          distance < closestDistance &&
-          otherObject.userData.id === dragModel.id
-        ) {
+        if (distance < closestDistance && otherObject.userData[key] === value) {
           closestDistance = distance;
           closestObject = otherObject;
         }

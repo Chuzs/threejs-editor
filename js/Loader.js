@@ -261,7 +261,9 @@ function Loader(editor) {
                 scene.rotation.y = y;
                 scene.rotation.z = z;
               }
-              scene.userData.id = model.id;
+              if (model) {
+                scene.userData = { ...model };
+              }
               editor.execute(new AddObjectCommand(editor, scene));
 
               loader.dracoLoader.dispose();

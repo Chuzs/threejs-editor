@@ -773,7 +773,7 @@ const materialList = [
     filePath: "models/glb/glb-30.glb",
     // coverUrl: "images/model-icon/20.png",
     modelType: "model",
-    direction: "horizon",
+    direction: "horizontal",
     decomposeName: "glb-30",
   },
   {
@@ -787,6 +787,19 @@ const materialList = [
     // coverUrl: "images/model-icon/20.png",
     modelType: "model",
     decomposeName: "glb-31",
+  },
+  {
+    name: "夹板吊顶",
+    key: "glb-32",
+    fileType: "glb",
+    id: "32",
+    animation: false,
+    direction: "horizontal",
+    position: "top",
+    filePath: "models/glb/glb-32.glb",
+    // coverUrl: "images/model-icon/20.png",
+    modelType: "model",
+    decomposeName: "glb-32",
   },
 ];
 
