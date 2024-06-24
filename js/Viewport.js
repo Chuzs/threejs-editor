@@ -45,6 +45,8 @@ function Viewport(editor) {
   const scene = editor.scene;
   const sceneHelpers = editor.sceneHelpers;
 
+  scene.add(editor.light);
+
   // helpers
 
   const GRID_COLORS_LIGHT = [0x999999, 0x777777];
@@ -214,13 +216,16 @@ function Viewport(editor) {
   function onMouseUp(event) {
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
-    handleClick();
+
     if (editor.enablePoint) {
       if (event.button === 0) {
         onMouseLeftClick(event);
       } else if (event.button === 2) {
         onMouseRightClick(event);
       }
+    } else {
+      event.button === 0 && handleClick();
+      event.button === 2 && editor.deselect();
     }
     document.removeEventListener("mouseup", onMouseUp);
   }
@@ -315,13 +320,13 @@ function Viewport(editor) {
   }
   function onMouseRightClick(event) {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
-      const object = selector.getIntersectObjectParentIsScene(
+      editor.deselect();
+      const intersectObject = selector.getIntersectObjectParentIsScene(
         onUpPosition,
         camera
       );
-      if (object) {
-        editor.removeObject(object);
-        editor.deselect();
+      if (intersectObject) {
+        editor.removeObject(intersectObject);
       }
     }
   }
@@ -329,8 +334,6 @@ function Viewport(editor) {
   function onMouseLeftClick(event) {
     const dragModel = editor.dragModel;
     if (!dragModel) return;
-    const array = getMousePosition(container.dom, event.clientX, event.clientY);
-    onUpPosition.fromArray(array);
     const intersects = selector.getPointerIntersectsIncludeGridHelp(
       onUpPosition,
       camera
@@ -351,6 +354,7 @@ function Viewport(editor) {
     dragModel.rotation = { x: 0, y: 0, z: 0 };
     dragModel.point = null;
     if (intersects.length > 0) {
+      const intersect = intersects[0];
       // 获取最近的同类型模型对象
       let closestObject = getCloestObject(intersects, "id", dragModel.id);
 
@@ -363,29 +367,36 @@ function Viewport(editor) {
           .setFromObject(closestObject)
           .getSize(new THREE.Vector3());
         // console.log("🚀 ~ onMouseLeftClick ~ closestObjectSize:", closestObjectSize);
-        let direction = intersects[0].point.clone().sub(closestObject.position);
+        let direction = intersect.point.clone().sub(closestObject.position);
         const { x, y, z } = direction.clone();
         if (dragModel.direction === "horizontal") {
-          // 距离x轴近
+          dragModel.point = closestObject.position.clone();
           if (Math.abs(x) > Math.abs(z)) {
-            direction.setZ(0).setLength(closestObjectSize.x);
+            if (closestObject.position.x > intersect.point.x) {
+              dragModel.point.x -= closestObjectSize.x;
+            } else {
+              dragModel.point.x += closestObjectSize.x;
+            }
           } else {
-            direction.setX(0).setLength(closestObjectSize.z);
+            if (closestObject.position.z > intersect.point.z) {
+              dragModel.point.z -= closestObjectSize.z;
+            } else {
+              dragModel.point.z += closestObjectSize.z;
+            }
           }
-          direction.setY(0);
         } else {
-          // console.log("intersect", intersects[0]);
+          // console.log("intersect", intersect);
           // console.log("closestSize", closestObjectSize);
-          // console.log("point", intersects[0].point.clone());
+          // console.log("point", intersect.point.clone());
           // console.log("closest", closestObject.position);
           // console.log(
           //   "direction",
-          //   intersects[0].point.clone().sub(closestObject.position)
+          //   intersect.point.clone().sub(closestObject.position)
           // );
           // console.log(intersects, closestObject);
-          if (intersects[0].normal && intersects[0].normal.y === 1) {
+          if (intersect.normal && intersect.normal.y === 1) {
             if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
-              direction = intersects[0].normal
+              direction = intersect.normal
                 .clone()
                 .setLength(closestObjectSize.y);
               dragModel.rotation = {
@@ -394,13 +405,13 @@ function Viewport(editor) {
                 z: 0,
               };
             } else {
-              direction = intersects[0].normal
+              direction = intersect.normal
                 .clone()
                 .setLength(closestObjectSize.y);
             }
-          } else if (intersects[0].normal && intersects[0].normal.y === 1) {
+          } else if (intersect.normal && intersect.normal.y === 1) {
             if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
-              direction = intersects[0].normal
+              direction = intersect.normal
                 .clone()
                 .setLength(closestObjectSize.y);
               dragModel.rotation = {
@@ -409,7 +420,7 @@ function Viewport(editor) {
                 z: 0,
               };
             } else {
-              direction = intersects[0].normal
+              direction = intersect.normal
                 .clone()
                 .setLength(closestObjectSize.y);
             }
@@ -418,7 +429,7 @@ function Viewport(editor) {
               direction
                 .setZ(0)
                 .setLength(closestObjectSize.z / 2 + closestObjectSize.x / 2);
-              if (intersects[0].point.z > closestObject.position.z) {
+              if (intersect.point.z > closestObject.position.z) {
                 direction.z -=
                   closestObjectSize.x / 2 - closestObjectSize.z / 2;
               } else {
@@ -427,7 +438,6 @@ function Viewport(editor) {
               }
             } else {
               direction.setZ(0).setLength(closestObjectSize.x);
-              // dragModel.rotation = null;
             }
           } else {
             // direction.setZ(0).setLength(closestObjectSize.x);
@@ -435,7 +445,7 @@ function Viewport(editor) {
               direction
                 .setX(0)
                 .setLength(closestObjectSize.x / 2 + closestObjectSize.z / 2);
-              if (intersects[0].point.z > closestObject.position.z) {
+              if (intersect.point.z > closestObject.position.z) {
                 direction.z -=
                   closestObjectSize.x / 2 - closestObjectSize.z / 2;
               } else {
@@ -452,7 +462,7 @@ function Viewport(editor) {
               direction
                 .setX(0)
                 .setLength(closestObjectSize.x / 2 + closestObjectSize.z / 2);
-              if (intersects[0].point.x > closestObject.position.x) {
+              if (intersect.point.x > closestObject.position.x) {
                 direction.x +=
                   closestObjectSize.x / 2 - closestObjectSize.z / 2;
               } else {
@@ -466,17 +476,21 @@ function Viewport(editor) {
               };
             }
           }
+          dragModel.point = closestObject.position.clone().add(direction);
         }
-        dragModel.point = closestObject.position.clone().add(direction);
       } else {
-        dragModel.point = intersects[0].point.clone();
+        dragModel.point = intersect.point.clone();
         let toAddMeshSize = new THREE.Box3()
           .setFromObject(editor.toAddMesh)
           .getSize(new THREE.Vector3());
-        if (dragModel.direction === "vertical" && editor.toAddMesh) {
+        // if (dragModel.direction === "vertical" && editor.toAddMesh) {
+        // 吸附辅助线
+        // dragModel.point.x += 0.25;
+        // dragModel.point.z -= toAddMeshSize.z / 4;
+        // }
+        if (dragModel.direction === "horizontal" && editor.toAddMesh) {
           // 吸附辅助线
-          dragModel.point.x += 0.5;
-          dragModel.point.z -= toAddMeshSize.z / 2;
+          dragModel.point.z -= (toAddMeshSize.z / 2) % 1;
         }
         if (
           dragModel.direction === "horizontal" &&
@@ -489,8 +503,35 @@ function Viewport(editor) {
               .getSize(new THREE.Vector3());
             dragModel.point = closestObject.position.clone();
             dragModel.point.y += closestObjectSize.y;
-            dragModel.point.x += toAddMeshSize.x / 2 - closestObjectSize.x / 2;
-            dragModel.point.z -= toAddMeshSize.z / 2 - closestObjectSize.z / 2;
+            if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
+              if (closestObject.position.x > intersect.point.x) {
+                dragModel.point.x -= closestObjectSize.z / 2;
+              } else {
+                dragModel.point.x += closestObjectSize.z / 2;
+              }
+              if (closestObject.position.z > intersect.point.z) {
+                dragModel.point.z +=
+                  toAddMeshSize.z / 2 -
+                  closestObjectSize.z / 2 -
+                  closestObjectSize.x / 2;
+              } else {
+                dragModel.point.z -=
+                  toAddMeshSize.z / 2 -
+                  closestObjectSize.z / 2 -
+                  closestObjectSize.x / 2;
+              }
+            } else {
+              if (closestObject.position.x > intersect.point.x) {
+                dragModel.point.x -= closestObjectSize.z / 2;
+              } else {
+                dragModel.point.x += closestObjectSize.z / 2;
+              }
+              if (closestObject.position.z > intersect.point.z) {
+                dragModel.point.z -= toAddMeshSize.z / 2;
+              } else {
+                dragModel.point.z += toAddMeshSize.z / 2;
+              }
+            }
           }
         }
       }
@@ -570,7 +611,25 @@ function Viewport(editor) {
   }
 
   function addModel(model) {
-    editor.loader.loadModel(model);
+    if (editor.toAddMesh) {
+      const toAddMesh = editor.toAddMesh.clone();
+      if (model && model.point) {
+        const { x, y, z } = model.point;
+        toAddMesh.position.set(x, y, z);
+      }
+      if (model && model.rotation) {
+        const { x, y, z } = model.rotation;
+        toAddMesh.rotation.x = x;
+        toAddMesh.rotation.y = y;
+        toAddMesh.rotation.z = z;
+      }
+      if (model) {
+        toAddMesh.userData = { ...model };
+      }
+      editor.execute(new AddObjectCommand(editor, toAddMesh));
+    } else {
+      editor.loader.loadModel(model);
+    }
   }
 
   async function addHotspot(model, intersects) {
@@ -822,8 +881,10 @@ function Viewport(editor) {
   // signals
 
   signals.objectAdded.add(() => {
-    editor.dragModel.point = null;
-    editor.dragModel.rotation = { x: 0, y: 0, z: 0 };
+    if (editor.dragModel) {
+      editor.dragModel.point = null;
+      editor.dragModel.rotation = { x: 0, y: 0, z: 0 };
+    }
     // editor.toAddMesh = null;
   });
   signals.selectModeChanged.add(function (mode) {
@@ -841,6 +902,7 @@ function Viewport(editor) {
     controls.center.set(0, 0, 0);
     pathtracer.reset();
 
+    scene.add(editor.light);
     initPT();
     render();
   });

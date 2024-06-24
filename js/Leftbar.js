@@ -23,7 +23,6 @@ function Leftbar(editor) {
         create.flexListbox.setValue({});
       }
       editor.editMode = container.selected;
-      editor.enableSelect = container.selected != "hotspot";
       editor.dragModel = null;
       editor.toAddMesh = null;
     });

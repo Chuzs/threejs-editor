@@ -12,6 +12,9 @@ _DEFAULT_CAMERA.name = "Camera";
 _DEFAULT_CAMERA.position.set(0, 5, 10);
 _DEFAULT_CAMERA.lookAt(new THREE.Vector3());
 
+const _DEFAULT_LIGHT = new THREE.AmbientLight(0xffffff);
+_DEFAULT_LIGHT.name = "AmbientLight";
+
 function Editor() {
   const Signal = signals.Signal; // eslint-disable-line no-undef
 
@@ -108,6 +111,7 @@ function Editor() {
   this.mediaPlayer = { mesh: null, dataModel: null, element: this.video };
   this.loader = new Loader(this);
   this.camera = _DEFAULT_CAMERA.clone();
+  this.light = _DEFAULT_LIGHT.clone();
 
   this.scene = new THREE.Scene();
   this.scene.name = "Scene";
@@ -130,7 +134,7 @@ function Editor() {
   this.materials = {};
   this.textures = {};
   this.scripts = {};
-  this.dragModel = {};
+  this.dragModel = null;
 
   this.materialsRefCounter = new Map(); // tracks how often is a material used by a 3D object
 
