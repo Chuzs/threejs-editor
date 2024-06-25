@@ -366,6 +366,9 @@ function Viewport(editor) {
         let closestObjectSize = new THREE.Box3()
           .setFromObject(closestObject)
           .getSize(new THREE.Vector3());
+        let toAddMeshSize = new THREE.Box3()
+          .setFromObject(editor.toAddMesh)
+          .getSize(new THREE.Vector3());
         // console.log("🚀 ~ onMouseLeftClick ~ closestObjectSize:", closestObjectSize);
         let direction = intersect.point.clone().sub(closestObject.position);
         const { x, y, z } = direction.clone();
@@ -394,9 +397,13 @@ function Viewport(editor) {
           //   intersect.point.clone().sub(closestObject.position)
           // );
           // console.log(intersects, closestObject);
-          if (intersect.normal && Math.abs(intersect.normal.y) === 1) {
+          if (
+            intersect.normal &&
+            Math.abs(Math.round(intersect.normal.y)) === 1
+          ) {
             dragModel.point = closestObject.position.clone();
-            dragModel.point.y += closestObjectSize.y * intersect.normal.y;
+            dragModel.point.y +=
+              closestObjectSize.y * Math.round(intersect.normal.y);
             if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
               dragModel.rotation = {
                 x: 0,
@@ -404,10 +411,50 @@ function Viewport(editor) {
                 z: 0,
               };
             }
-          } else if (intersect.normal && Math.abs(intersect.normal.x) === 1) {
+          } else if (
+            intersect.normal &&
+            Math.abs(Math.round(intersect.normal.x)) === 1
+          ) {
             dragModel.point = closestObject.position.clone();
-            dragModel.point.x += closestObjectSize.x * intersect.normal.x;
             if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
+              dragModel.point.z -=
+                closestObjectSize.z * Math.round(intersect.normal.x);
+              dragModel.rotation = {
+                x: 0,
+                y: THREE.MathUtils.degToRad(90),
+                z: 0,
+              };
+            } else {
+              dragModel.point.x +=
+                closestObjectSize.x * Math.round(intersect.normal.x);
+            }
+          } else if (
+            intersect.normal &&
+            Math.round(Math.abs(intersect.normal.z)) === 1
+          ) {
+            dragModel.point = closestObject.position.clone();
+            if (closestObject.rotation.y === THREE.MathUtils.degToRad(90)) {
+              dragModel.point.x +=
+                (toAddMeshSize.x / 2 + closestObjectSize.x / 2) *
+                Math.round(intersect.normal.z);
+              if (closestObject.position.z > intersect.point.z) {
+                dragModel.point.z -=
+                  closestObjectSize.z / 2 - toAddMeshSize.z / 2;
+              } else {
+                dragModel.point.z +=
+                  closestObjectSize.z / 2 - toAddMeshSize.z / 2;
+              }
+            } else {
+              dragModel.point.z +=
+                (toAddMeshSize.z / 2 + closestObjectSize.z / 2) *
+                Math.round(intersect.normal.z);
+              if (closestObject.position.x > intersect.point.x) {
+                dragModel.point.x -=
+                  closestObjectSize.x / 2 - toAddMeshSize.x / 2;
+              } else {
+                dragModel.point.x +=
+                  closestObjectSize.x / 2 - toAddMeshSize.x / 2;
+              }
               dragModel.rotation = {
                 x: 0,
                 y: THREE.MathUtils.degToRad(90),
@@ -525,6 +572,7 @@ function Viewport(editor) {
         }
       }
     }
+    // console.log(dragModel.point);
   }
 
   function getCloestObject(intersects, key, value) {

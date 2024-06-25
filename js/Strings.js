@@ -877,8 +877,8 @@ function Strings(config) {
 
       "menubar/view": "视图",
       "menubar/view/fullscreen": "全屏",
-      "menubar/view/show_leftbar": "显示左侧窗口",
-      "menubar/view/show_sidebar": "显示右侧窗口",
+      "menubar/view/show_leftbar": "显示资源窗口",
+      "menubar/view/show_sidebar": "显示属性窗口",
 
       "menubar/help": "帮助",
       "menubar/help/source_code": "源码",

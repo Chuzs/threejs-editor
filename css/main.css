@@ -1,5 +1,29 @@
 :root {
   color-scheme: light dark;
+  --font_color: #fff;
+  --font_color2: #999;
+  --font_color3: #ccc;
+  --font_color4: #888;
+  --font_color5: #aaa;
+  --blue_color: #307af2;
+  --blue_hover_color: #0662f6;
+  --blue_click_color: #4b8fff;
+  --blue_disable_color: #accafa;
+  --blue_bk_color: #eaf1fd;
+  --black_color: #171719;
+  --black_color2: #28282b;
+  --black_color3: #353538;
+  --black_color4: #49494c;
+  --black_color5: #57575a;
+  --yellow_color: #f7b500;
+  --yellow_hover_color: #f7a100;
+  --yellow_click_color: #f0c13f;
+  --yellow_disable_color: #fce199;
+  --yellow_bk_color: #fef7e5;
+  --orange_color: #fa6400;
+  --border_radius: 6px;
+  --scrollbar_width: 4px;
+  --scrollbar_thumb: rgba(255, 255, 255, 0.3);
 }
 
 [hidden] {
@@ -508,13 +532,13 @@ select:hover {
   width: calc(100% - 60px);
 }
 
-#leftbar .FlexListbox {
+.FlexListbox {
   display: flex;
   justify-content: left;
   flex-wrap: wrap;
 }
 
-#leftbar .FlexListbox .FlexListboxItem {
+.FlexListbox .FlexListboxItem {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -526,12 +550,12 @@ select:hover {
   border-radius: 5px;
 }
 
-#leftbar .FlexListbox .FlexListboxItem.selected {
+.FlexListbox .FlexListboxItem.selected {
   border: 1px solid #aaa;
   box-sizing: border-box;
 }
 
-#leftbar .FlexListbox .FlexListboxItem img {
+.FlexListbox .FlexListboxItem img {
   object-fit: contain;
   width: 100%;
   height: 100%;
@@ -590,7 +614,7 @@ select:hover {
   height: 32px;
   cursor: pointer;
 }
-#viewportToolbar button:hover,
+/* #viewportToolbar button:hover, */
 #viewportToolbar button.active {
   background-color: #fff;
 }
@@ -701,7 +725,7 @@ select:hover {
 
 /* DARK MODE */
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   button {
     color: #aaa;
     background-color: #222;
@@ -721,7 +745,7 @@ select:hover {
   textarea {
     background-color: #222;
     border: 1px solid transparent;
-    color: #888;
+    color: var(--font_color3);
   }
 
   select {
@@ -743,24 +767,29 @@ select:hover {
   #menubar .menu .options {
     background: #111;
   }
+  #menubar .menu .title {
+    color: var(--font_color3);
+  }
 
   #menubar .menu .options hr {
     border-color: #222;
   }
 
   #menubar .menu .options .option {
-    color: #888;
+    color: var(--font_color3);
   }
 
   #menubar .menu .options .inactive {
     color: #444;
   }
 
-  #sidebar {
+  #sidebar,
+  #leftbar {
     background-color: #111;
   }
 
-  #sidebar .Panel {
+  #sidebar .Panel,
+  #leftbar .Panel {
     border-top: 1px solid #222;
   }
 
@@ -774,7 +803,7 @@ select:hover {
   }
 
   #tabs span {
-    color: #555;
+    color: var(--font_color5);
     border-right: 1px solid #222;
   }
 
@@ -787,6 +816,14 @@ select:hover {
   }
 
   #toolbar img {
+    filter: invert(1);
+  }
+
+  #viewportToolbar {
+    background-color: #111;
+  }
+
+  #viewportToolbar img {
     filter: invert(1);
   }
 
@@ -812,17 +849,17 @@ select:hover {
   }
 
   .TabbedPanel .Tab {
-    color: #555;
+    color: var(--font_color5);
     border-right: 1px solid #222;
   }
 
   .TabbedPanel .Tab.selected {
-    color: #888;
+    color: var(--font_color3);
     background-color: #111;
   }
 
   .Listbox {
-    color: #888;
+    color: var(--font_color3);
     background: #222;
   }
 
@@ -832,6 +869,28 @@ select:hover {
 
   .Listbox .ListboxItem.active {
     background-color: rgba(21, 60, 94, 1);
+  }
+  .FlexListbox {
+    color: var(--font_color3);
+    background: #111;
+  }
+
+  .FlexListbox .FlexListboxItem:hover {
+    background-color: rgba(21, 60, 94, 0.5);
+  }
+
+  .FlexListbox .FlexListboxItem.active {
+    background-color: rgba(21, 60, 94, 1);
+  }
+  .FlexListbox .FlexListboxItem img {
+    background-color: #222;
+  }
+  .FlexListbox .FlexListboxItem {
+    background-color: #222;
+  }
+
+  #menubar .menu.right button.active {
+    background-color: #08f;
   }
 }
 
