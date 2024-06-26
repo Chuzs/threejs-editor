@@ -11,7 +11,7 @@ class EditorControls extends THREE.EventDispatcher {
     this.panSpeed = 0.002;
     this.zoomSpeed = 0.1;
     this.rotationSpeed = 0.005;
-    this.movementSpeed = 20;
+    this.movementSpeed = 5;
 
     this.moveForward = false;
     this.moveBackward = false;

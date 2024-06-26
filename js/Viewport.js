@@ -20,6 +20,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { ViewportPathtracer } from "./Viewport.Pathtracer.js";
 import { AddObjectCommand } from "./commands/AddObjectCommand.js";
 import { ViewportToolbar } from "./Viewport.Toolbar.js";
+import { PlayerControls } from "./PlayerControls.js";
 
 function Viewport(editor) {
   const selector = editor.selector;
@@ -880,9 +881,27 @@ function Viewport(editor) {
     signals.cameraChanged.dispatch(camera);
     signals.refreshSidebarObject3D.dispatch(camera);
   });
+  const playerControls = new PlayerControls(
+    camera,
+    editor.worldOctree,
+    container.dom
+  );
   viewHelper.center = controls.center;
 
   // signals
+
+  signals.selectModeChanged.add(function (mode) {
+    switch (mode) {
+      case "point":
+        controls.enabled = true;
+        playerControls.enabled = false;
+        break;
+      case "select":
+        controls.enabled = false;
+        playerControls.enabled = true;
+        break;
+    }
+  });
 
   signals.objectAdded.add(() => {
     if (editor.dragModel) {
@@ -1348,6 +1367,10 @@ function Viewport(editor) {
     if (controls.enabled) {
       controls.update(delta);
     }
+    if (playerControls.enabled) {
+      playerControls.update(delta);
+    }
+
     if (needsUpdate === true) render();
 
     updatePT();

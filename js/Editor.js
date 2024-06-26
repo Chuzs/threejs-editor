@@ -1,5 +1,5 @@
 import * as THREE from "three";
-
+import { Octree } from "three/addons/math/Octree.js";
 import { Config } from "./Config.js";
 import { Loader } from "./Loader.js";
 import { History as _History } from "./History.js";
@@ -9,6 +9,7 @@ import { Selector } from "./Selector.js";
 
 var _DEFAULT_CAMERA = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
 _DEFAULT_CAMERA.name = "Camera";
+
 _DEFAULT_CAMERA.position.set(0, 5, 10);
 _DEFAULT_CAMERA.lookAt(new THREE.Vector3());
 
@@ -135,6 +136,7 @@ function Editor() {
   this.textures = {};
   this.scripts = {};
   this.dragModel = null;
+  this.worldOctree = new Octree();
 
   this.materialsRefCounter = new Map(); // tracks how often is a material used by a 3D object
 
@@ -201,6 +203,7 @@ Editor.prototype = {
 
     if (parent === undefined) {
       this.scene.add(object);
+      this.worldOctree.fromGraphNode(object);
     } else {
       parent.children.splice(index, 0, object);
       object.parent = parent;
