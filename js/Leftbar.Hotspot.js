@@ -11,17 +11,18 @@ function LeftbarHotspot(editor) {
   const hotspostList = new LeftbarHotspotList(editor);
 
   container.addTab(
-    "hotspostList",
-    strings.getKey("leftbar/hotspot/list"),
-    hotspostList
-  );
-
-  container.addTab(
     "hotspostAdd",
     strings.getKey("leftbar/hotspot/add"),
     hotspostAdd
   );
-  container.select("hotspostList");
+  // todo 热点列表展示
+  // container.addTab(
+  //   "hotspostList",
+  //   strings.getKey("leftbar/hotspot/list"),
+  //   hotspostList
+  // );
+
+  container.select("hotspostAdd");
   return container;
 }
 

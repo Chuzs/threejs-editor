@@ -41,25 +41,35 @@ class Selector {
       if (child.name === "picker") objects.push(child);
     });
     const intersects = raycaster.intersectObjects(objects, false);
+    this.updateMouseHelper(intersects);
+    return intersects;
+  }
+  updateMouseHelper(intersects) {
     if (intersects.length > 0) {
       const intersect = intersects[0];
       const object = intersect.object;
       const point = intersect.point;
       this.editor.mouseHelper.position.copy(point);
-      const normal = intersect.face.normal.clone();
+      let normal = new THREE.Vector3(0, 1, 0);
+      if (intersect.normal) {
+        normal = intersect.face.normal.clone();
+      }
       normal.transformDirection(object.matrixWorld);
       normal.multiplyScalar(3);
       normal.add(intersect.point);
       this.editor.mouseHelper.lookAt(normal);
       this.editor.mouseHelper.guidePosition = normal;
-      // const o = intersect.face.normal.clone();
-      // o.transformDirection(object.matrixWorld);
-      // o.multiplyScalar(0.5);
-      // o.add(intersect.point);
-      // this.editor.mouseHelper.spritePosition = o;
+      let o = new THREE.Vector3(0, 1, 0);
+      if (intersect.normal) {
+        o = intersect.face.normal.clone();
+      }
+      o.transformDirection(object.matrixWorld);
+      o.multiplyScalar(0.5);
+      o.add(intersect.point);
+      this.editor.mouseHelper.spritePosition = o;
     }
-    return intersects;
   }
+
   findParentIsScene(obj) {
     if (obj.parent instanceof THREE.Scene) {
       return obj;
@@ -98,8 +108,9 @@ class Selector {
       if (child.type === "GridHelper" || child.name === "picker")
         objects.push(child);
     });
-
-    return raycaster.intersectObjects(objects, false);
+    const intersects = raycaster.intersectObjects(objects, false);
+    this.updateMouseHelper(intersects);
+    return intersects;
   }
 
   select(object) {

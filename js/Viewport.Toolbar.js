@@ -30,7 +30,6 @@ function ViewportToolbar(editor) {
   select.dom.appendChild(selectIcon);
   select.dom.addEventListener("mousedown", function (e) {
     e.stopPropagation();
-    editor.enablePoint = false;
     signals.selectModeChanged.dispatch("select");
   });
   container.add(select);
@@ -44,7 +43,6 @@ function ViewportToolbar(editor) {
   point.dom.appendChild(pointIcon);
   point.dom.addEventListener("mousedown", function (e) {
     e.stopPropagation();
-    editor.enablePoint = true;
     signals.selectModeChanged.dispatch("point");
   });
   container.add(point);
@@ -55,9 +53,13 @@ function ViewportToolbar(editor) {
 
     switch (mode) {
       case "point":
+        editor.selectMode = "point";
+        editor.enablePoint = true;
         point.dom.classList.add("selected");
         break;
       case "select":
+        editor.selectMode = "select";
+        editor.enablePoint = false;
         select.dom.classList.add("selected");
         break;
     }

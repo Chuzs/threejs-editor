@@ -8,6 +8,7 @@ function LeftbarGeometryList(editor) {
 
   const flexListbox = new UIFlexListbox().onChange((e) => {
     editor.dragModel = flexListbox.getValue();
+    editor.toAddMesh = editor.createGeometry(editor.dragModel);
   });
   flexListbox.setItems(geometryModelList);
   container.add(flexListbox);

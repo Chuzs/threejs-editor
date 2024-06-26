@@ -21,7 +21,11 @@ function Leftbar(editor) {
       }
       if (container.selected != "create") {
         create.flexListbox.setValue({});
+      } else {
+        editor.selectMode = "point";
+        signals.selectModeChanged.dispatch("point");
       }
+
       editor.editMode = container.selected;
       editor.dragModel = null;
       editor.toAddMesh = null;
@@ -31,7 +35,7 @@ function Leftbar(editor) {
   container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);
 
   container.select("create");
-
+  signals.selectModeChanged.dispatch("point");
   signals.showLeftbarChanged.add((showLeftbar) => {
     container.setHidden(!showLeftbar);
   });

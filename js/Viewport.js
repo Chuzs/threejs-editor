@@ -45,8 +45,6 @@ function Viewport(editor) {
   const scene = editor.scene;
   const sceneHelpers = editor.sceneHelpers;
 
-  scene.add(editor.light);
-
   // helpers
 
   const GRID_COLORS_LIGHT = [0x999999, 0x777777];
@@ -516,6 +514,7 @@ function Viewport(editor) {
         }
       } else {
         dragModel.point = intersect.point.clone();
+        if (!editor.toAddMesh) return;
         let toAddMeshSize = new THREE.Box3()
           .setFromObject(editor.toAddMesh)
           .getSize(new THREE.Vector3());
@@ -570,6 +569,9 @@ function Viewport(editor) {
             }
           }
         }
+        if (dragModel.modelType === "hotspot") {
+          dragModel.rotation = editor.mouseHelper.rotation.clone();
+        }
       }
     }
     // console.log(dragModel.point);
@@ -595,9 +597,11 @@ function Viewport(editor) {
     const dragModel = editor.dragModel;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
-    const intersects = selector.getPointerIntersects(onUpPosition, camera);
+    const intersects = selector.getPointerIntersectsIncludeGridHelp(
+      onUpPosition,
+      camera
+    );
     if (intersects.length > 0) {
-      console.log(intersects[0].point);
       dragModel.point = intersects[0].point;
     }
     // 如果是几何体模型拖拽
@@ -611,33 +615,7 @@ function Viewport(editor) {
   }
 
   function addGeometry(model) {
-    const { type } = model;
-    // 不需要赋值的key
-    const notGeometrykey = ["id", "name", "modelType", "type"];
-    const geometryData = Object.keys(model)
-      .filter((key) => !notGeometrykey.includes(key))
-      .map((v) => model[v]);
-    // 创建几何体
-    const geometry = new THREE[type](...geometryData);
-    const colors = [
-      "#FF4500",
-      "#90EE90",
-      "#00CED1",
-      "#1E90FF",
-      "#C71585",
-      "#FF4500",
-      "#FAD400",
-      "#1F93FF",
-      "#90F090",
-      "#C71585",
-    ];
-    // 随机颜色
-    const meshColor = colors[Math.ceil(Math.random() * 10)];
-    const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(meshColor),
-      side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
+    const mesh = editor.createGeometry(model);
     mesh.name = model.name;
     if (model && model.point) {
       // 在控制台输出鼠标在场景中的位置
@@ -705,7 +683,8 @@ function Viewport(editor) {
         Object.assign(intersect.object.userData, userData);
         render();
       } else {
-        const imageMesh = await createImageMesh(model.coverUrl);
+        const imageMesh = await editor.createImageMesh(model.coverUrl);
+        imageMesh.name = model.name;
         imageMesh.position.set(
           intersectPoint.x,
           intersectPoint.y,
@@ -718,7 +697,7 @@ function Viewport(editor) {
           ...model,
           objectId: imageMesh.id,
           position: vector3ToCoordinate(imageMesh.position),
-          guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
+          // guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
           rotation: vector3ToCoordinate(imageMesh.rotation),
           scale: vector3ToCoordinate(imageMesh.scale),
         };
@@ -762,19 +741,7 @@ function Viewport(editor) {
       mesh.translateZ(0.051);
     }
   }
-  async function createImageMesh(url) {
-    const texture = await new THREE.TextureLoader().loadAsync(url);
-    const data = texture.source.data;
-    const aspectRatio = data.width / data.height;
-    let plane = new THREE.PlaneGeometry(aspectRatio, 1);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: !0,
-      side: THREE.DoubleSide,
-    });
-    material.toneMapped = !1;
-    return new THREE.Mesh(plane, material);
-  }
+
   async function playVideo(mesh, videoUrl) {
     if (editor.videoState === "play") {
       if (editor.mediaPlayer.mesh === mesh) {

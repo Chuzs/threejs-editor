@@ -12,7 +12,7 @@ _DEFAULT_CAMERA.name = "Camera";
 _DEFAULT_CAMERA.position.set(0, 5, 10);
 _DEFAULT_CAMERA.lookAt(new THREE.Vector3());
 
-const _DEFAULT_LIGHT = new THREE.AmbientLight(0xffffff);
+const _DEFAULT_LIGHT = new THREE.AmbientLight(0xffffff, 2);
 _DEFAULT_LIGHT.name = "AmbientLight";
 
 function Editor() {
@@ -150,6 +150,7 @@ function Editor() {
   this.showSidebar = true;
   this.toAddMesh = null;
   this.editMode = "create";
+  this.selectMode = null;
   this.helpers = {};
 
   this.cameras = {};
@@ -634,7 +635,49 @@ Editor.prototype = {
   redo: function () {
     this.history.redo();
   },
-
+  createImageMesh: async function (url) {
+    const texture = await new THREE.TextureLoader().loadAsync(url);
+    const data = texture.source.data;
+    const aspectRatio = data.width / data.height;
+    let plane = new THREE.PlaneGeometry(aspectRatio, 1);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: !0,
+      side: THREE.DoubleSide,
+    });
+    material.toneMapped = !1;
+    return new THREE.Mesh(plane, material);
+  },
+  createGeometry: function (model) {
+    const { type } = model;
+    // 不需要赋值的key
+    const notGeometrykey = ["id", "name", "modelType", "type"];
+    const geometryData = Object.keys(model)
+      .filter((key) => !notGeometrykey.includes(key))
+      .map((v) => model[v]);
+    // 创建几何体
+    const geometry = new THREE[type](...geometryData);
+    const colors = [
+      "#FF4500",
+      "#90EE90",
+      "#00CED1",
+      "#1E90FF",
+      "#C71585",
+      "#FF4500",
+      "#FAD400",
+      "#1F93FF",
+      "#90F090",
+      "#C71585",
+    ];
+    // 随机颜色
+    const meshColor = colors[Math.ceil(Math.random() * 10)];
+    const material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(meshColor),
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    return mesh;
+  },
   utils: {
     save: save,
     saveArrayBuffer: saveArrayBuffer,
