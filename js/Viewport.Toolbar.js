@@ -47,6 +47,21 @@ function ViewportToolbar(editor) {
   });
   container.add(point);
 
+  const firstIcon = document.createElement("img");
+  firstIcon.title = strings.getKey("viewport/toolbar/first");
+  firstIcon.src = "images/16.png";
+
+  const first = new UIButton();
+  first.dom.className = "Button First";
+  first.dom.appendChild(firstIcon);
+  first.dom.addEventListener("mousedown", function (e) {
+    e.stopPropagation();
+    editor.firstPerson = !editor.firstPerson;
+    signals.personChanged.dispatch(editor.firstPerson ? "first" : "");
+    first.toggleClass("selected", editor.firstPerson);
+  });
+  container.add(first);
+
   signals.selectModeChanged.add(function (mode) {
     point.dom.classList.remove("selected");
     select.dom.classList.remove("selected");

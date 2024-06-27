@@ -890,13 +890,13 @@ function Viewport(editor) {
 
   // signals
 
-  signals.selectModeChanged.add(function (mode) {
-    switch (mode) {
-      case "point":
+  signals.personChanged.add(function (person) {
+    switch (person) {
+      case "":
         controls.enabled = true;
         playerControls.enabled = false;
         break;
-      case "select":
+      case "first":
         controls.enabled = false;
         playerControls.enabled = true;
         break;

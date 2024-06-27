@@ -1189,6 +1189,7 @@ function Strings(config) {
       "viewport/toolbar/reset": "重置相机",
       "viewport/toolbar/select": "选择工具：单击选择模型",
       "viewport/toolbar/point": "点摆放：选择模型后单击场景摆放",
+      "viewport/toolbar/first": "第一人称",
     },
 
     ja: {

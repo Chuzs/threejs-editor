@@ -602,7 +602,6 @@ select:hover {
   transform: translate(-50%);
   top: 10px;
   display: flex;
-  background: #ddd;
   text-align: center;
 }
 
@@ -626,6 +625,10 @@ select:hover {
 #viewportToolbar button img {
   width: 16px;
   opacity: 0.5;
+}
+
+#viewportToolbar .First {
+  margin-left: 10px;
 }
 
 .Outliner {
@@ -819,12 +822,12 @@ select:hover {
     filter: invert(1);
   }
 
-  #viewportToolbar {
-    background-color: #111;
-  }
-
   #viewportToolbar img {
     filter: invert(1);
+  }
+
+  #viewportToolbar .First img {
+    filter: none;
   }
 
   .Outliner {

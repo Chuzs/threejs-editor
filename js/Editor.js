@@ -98,6 +98,7 @@ function Editor() {
     showLeftbarChanged: new Signal(),
     showSidebarChanged: new Signal(),
     selectModeChanged: new Signal(),
+    personChanged: new Signal(),
   };
 
   this.config = new Config();
@@ -150,6 +151,7 @@ function Editor() {
   this.showViewportToolbar = true;
   this.showLeftbar = true;
   this.showSidebar = true;
+  this.firstPerson = false;
   this.toAddMesh = null;
   this.editMode = "create";
   this.selectMode = null;
@@ -203,7 +205,9 @@ Editor.prototype = {
 
     if (parent === undefined) {
       this.scene.add(object);
-      this.worldOctree.fromGraphNode(object);
+      let n = performance.now();
+      // this.worldOctree.fromGraphNode(object);
+      console.log(performance.now() - n);
     } else {
       parent.children.splice(index, 0, object);
       object.parent = parent;
