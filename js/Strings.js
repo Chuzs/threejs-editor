@@ -1167,6 +1167,7 @@ function Strings(config) {
       "leftbar/hotspot/add/video": "视频",
       "leftbar/hotspot/list": "热点列表",
       "leftbar/create": "建造",
+      "leftbar/house": "展厅",
 
       "toolbar/translate": "移动",
       "toolbar/rotate": "旋转",

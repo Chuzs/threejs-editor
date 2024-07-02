@@ -542,23 +542,30 @@ select:hover {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 31.3%;
-  height: 70px;
-  margin: 1%;
+  width: 28%;
+  height: 80px;
+  margin: 2%;
   background: #fff;
   text-align: center;
-  border-radius: 5px;
 }
 
 .FlexListbox .FlexListboxItem.selected {
   border: 1px solid #aaa;
-  box-sizing: border-box;
 }
 
 .FlexListbox .FlexListboxItem img {
   object-fit: contain;
   width: 100%;
-  height: 100%;
+  height: 70%;
+}
+
+.FlexListbox .FlexListboxItem .title {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 22px;
+  height: 30%;
+  padding-top: 4px;
 }
 
 #tabs {
@@ -879,17 +886,21 @@ select:hover {
   }
 
   .FlexListbox .FlexListboxItem:hover {
-    background-color: rgba(21, 60, 94, 0.5);
+    border: 1px solid #aaa;
   }
 
   .FlexListbox .FlexListboxItem.active {
-    background-color: rgba(21, 60, 94, 1);
+    /* background-color: rgba(21, 60, 94, 1); */
   }
   .FlexListbox .FlexListboxItem img {
     background-color: #222;
   }
+  .FlexListbox .FlexListboxItem .title {
+    background-color: #111;
+  }
   .FlexListbox .FlexListboxItem {
     background-color: #222;
+    border: 1px solid #111;
   }
 
   #menubar .menu.right button.active {

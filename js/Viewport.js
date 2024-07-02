@@ -356,6 +356,13 @@ function Viewport(editor) {
       const intersect = intersects[0];
       // 获取最近的同类型模型对象
       let closestObject = getCloestObject(intersects, "id", dragModel.id);
+      if (dragModel.materialType) {
+        closestObject = getCloestObject(
+          intersects,
+          "materialType",
+          dragModel.materialType
+        );
+      }
 
       if (closestObject && editor.editMode === "create") {
         if (!editor.toAddMesh) {

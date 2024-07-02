@@ -183,7 +183,7 @@ class EditorControls extends THREE.EventDispatcher {
 
     function onMouseDown(event) {
       if (event.button === 0) {
-        state = null;
+        state = STATE.ROTATE;
       } else if (event.button === 1) {
         state = STATE.ROTATE;
       }

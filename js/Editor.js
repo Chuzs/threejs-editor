@@ -139,6 +139,17 @@ function Editor() {
   this.dragModel = null;
   this.worldOctree = new Octree();
 
+  const plane = new THREE.PlaneGeometry(1000, 1000);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true, // 定义材质为透明
+    opacity: 0,
+  });
+  const planeMesh = new THREE.Mesh(plane, material);
+  planeMesh.rotation.x -= Math.PI / 2;
+
+  this.worldOctree.fromGraphNode(planeMesh);
+  this.sceneHelpers.add(planeMesh);
   this.materialsRefCounter = new Map(); // tracks how often is a material used by a 3D object
 
   this.mixer = new THREE.AnimationMixer(this.scene);

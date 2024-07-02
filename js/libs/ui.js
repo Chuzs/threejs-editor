@@ -1116,6 +1116,10 @@ class UIFlexListbox extends UIDiv {
         img.dom.src = item.coverUrl;
         listitem.setId(item.id || `FlexListbox-${i}`);
         listitem.add(img);
+        const div = new UIDiv();
+        div.setTextContent(item.name);
+        div.addClass("title");
+        listitem.add(div);
       } else {
         const div = new UIDiv();
         div.setTextContent(item.name);

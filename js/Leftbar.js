@@ -1,4 +1,5 @@
 import { LeftbarCreate } from "./Leftbar.Create.js";
+import { LeftbarHouse } from "./Leftbar.House.js";
 import { LeftbarModel } from "./Leftbar.Model.js";
 import { LeftbarHotspot } from "./Leftbar.hotspot.js";
 import { UITabbedPanel } from "./libs/ui.js";
@@ -12,6 +13,8 @@ function Leftbar(editor) {
 
   const create = new LeftbarCreate(editor);
   container.addTab("create", strings.getKey("leftbar/create"), create);
+  const house = new LeftbarHouse(editor);
+  container.addTab("house", strings.getKey("leftbar/house"), house);
   const model = new LeftbarModel(editor);
   container
     .addTab("model", strings.getKey("leftbar/model"), model)
