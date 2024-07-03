@@ -160,6 +160,9 @@ function Editor() {
   this.enableChildSelect = false;
   this.enablePoint = false;
   this.showViewportToolbar = true;
+  this.showViewportInfo = true;
+  this.showViewportControls = true;
+  this.showViewHelper = true;
   this.showLeftbar = true;
   this.showSidebar = true;
   this.firstPerson = false;

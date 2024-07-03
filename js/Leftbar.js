@@ -38,7 +38,7 @@ function Leftbar(editor) {
   container.addTab("hotspot", strings.getKey("leftbar/hotspot"), hotspot);
 
   container.select("create");
-  signals.selectModeChanged.dispatch("point");
+  signals.selectModeChanged.dispatch("select");
   signals.showLeftbarChanged.add((showLeftbar) => {
     container.setHidden(!showLeftbar);
   });

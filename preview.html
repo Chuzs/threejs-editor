@@ -53,8 +53,8 @@
           "three/addons/": "../examples/jsm/",
 
           "three/examples/": "../examples/",
-          "three-gpu-pathtracer": "https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.22/build/index.module.js",
-          "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.4/build/index.module.js"
+          "three-gpu-pathtracer": "../build/three-gpu-pathtracer.js",
+          "three-mesh-bvh": "../build/three-mesh-bvh.js"
         }
       }
     </script>
@@ -89,40 +89,20 @@
       window.THREE = THREE; // Expose THREE to APP Scripts and Console
       editor.enableSelect = false;
       editor.showViewportToolbar = false;
+      editor.showViewportControls = false;
+      editor.showViewportInfo = false;
       const viewport = new Viewport(editor);
       viewport.dom.style.top = 0;
       viewport.dom.style.right = 0;
       viewport.dom.style.left = 0;
       document.body.appendChild(viewport.dom);
 
-      const toolbar = new Toolbar(editor);
-
-      const script = new Script(editor);
-
-      const player = new Player(editor);
-
       const sidebar = new Sidebar(editor);
-
-      const leftbar = new Leftbar(editor);
 
       const menubar = new Menubar(editor);
 
-      const resizer = new Resizer(editor);
-
-      const resizerLeft = new ResizerLeft(editor);
-
-      editor.signals.showHelpersChanged.dispatch({
-        gridHelper: false,
-        cameraHelpers: false,
-        lightHelpers: false,
-        skeletonHelpers: false,
-      });
-      //
-
       editor.storage.init(function () {
         editor.storage.get(async function (state) {
-          if (isLoadingFromHash) return;
-
           if (state !== undefined) {
             await editor.fromJSON(state);
           }
@@ -136,61 +116,42 @@
 
         //
 
-        let timeout;
+        // let timeout;
 
-        function saveState() {
-          if (editor.config.getKey("autosave") === false) {
-            return;
-          }
+        // function saveState() {
+        //   if (editor.config.getKey("autosave") === false) {
+        //     return;
+        //   }
 
-          clearTimeout(timeout);
+        //   clearTimeout(timeout);
 
-          timeout = setTimeout(function () {
-            editor.signals.savingStarted.dispatch();
+        //   timeout = setTimeout(function () {
+        //     editor.signals.savingStarted.dispatch();
 
-            timeout = setTimeout(function () {
-              editor.storage.set(editor.toJSON());
+        //     timeout = setTimeout(function () {
+        //       editor.storage.set(editor.toJSON());
 
-              editor.signals.savingFinished.dispatch();
-            }, 100);
-          }, 1000);
-        }
+        //       editor.signals.savingFinished.dispatch();
+        //     }, 100);
+        //   }, 1000);
+        // }
 
-        const signals = editor.signals;
+        // const signals = editor.signals;
 
-        signals.geometryChanged.add(saveState);
-        signals.objectAdded.add(saveState);
-        signals.objectChanged.add(saveState);
-        signals.objectRemoved.add(saveState);
-        signals.materialChanged.add(saveState);
-        signals.sceneBackgroundChanged.add(saveState);
-        signals.sceneEnvironmentChanged.add(saveState);
-        signals.sceneFogChanged.add(saveState);
-        signals.sceneGraphChanged.add(saveState);
-        signals.scriptChanged.add(saveState);
-        signals.historyChanged.add(saveState);
+        // signals.geometryChanged.add(saveState);
+        // signals.objectAdded.add(saveState);
+        // signals.objectChanged.add(saveState);
+        // signals.objectRemoved.add(saveState);
+        // signals.materialChanged.add(saveState);
+        // signals.sceneBackgroundChanged.add(saveState);
+        // signals.sceneEnvironmentChanged.add(saveState);
+        // signals.sceneFogChanged.add(saveState);
+        // signals.sceneGraphChanged.add(saveState);
+        // signals.scriptChanged.add(saveState);
+        // signals.historyChanged.add(saveState);
       });
 
       //
-
-      document.addEventListener("dragover", function (event) {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "copy";
-      });
-
-      document.addEventListener("drop", function (event) {
-        event.preventDefault();
-
-        if (event.dataTransfer.types[0] === "text/plain") return; // Outliner drop
-
-        if (event.dataTransfer.items) {
-          // DataTransferItemList supports folders
-
-          editor.loader.loadItemList(event.dataTransfer.items);
-        } else {
-          editor.loader.loadFiles(event.dataTransfer.files);
-        }
-      });
 
       function onWindowResize() {
         editor.signals.windowResize.dispatch();
@@ -199,28 +160,6 @@
       window.addEventListener("resize", onWindowResize);
 
       onWindowResize();
-
-      //
-
-      let isLoadingFromHash = false;
-      const hash = window.location.hash;
-
-      if (hash.slice(1, 6) === "file=") {
-        const file = hash.slice(6);
-
-        if (confirm(editor.strings.getKey("prompt/file/open"))) {
-          const loader = new THREE.FileLoader();
-          loader.crossOrigin = "";
-          loader.load(file, function (text) {
-            editor.clear();
-            editor.fromJSON(JSON.parse(text));
-          });
-
-          isLoadingFromHash = true;
-        }
-      }
-
-      // ServiceWorker
 
       if ("serviceWorker" in navigator) {
         try {

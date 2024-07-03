@@ -1,169 +1,175 @@
-import * as THREE from 'three';
+import * as THREE from "three";
+
+import { zipSync, strToU8 } from "three/addons/libs/fflate.module.js";
+
+import {
+  UIButton,
+  UICheckbox,
+  UIPanel,
+  UIInput,
+  UIRow,
+  UIText,
+} from "./libs/ui.js";
+
+function SidebarProjectApp(editor) {
+  const config = editor.config;
+  const signals = editor.signals;
+  const strings = editor.strings;
+
+  const save = editor.utils.save;
 
-import { zipSync, strToU8 } from 'three/addons/libs/fflate.module.js';
+  const container = new UIPanel();
+  container.setId("app");
 
-import { UIButton, UICheckbox, UIPanel, UIInput, UIRow, UIText } from './libs/ui.js';
+  const headerRow = new UIRow();
+  headerRow.add(
+    new UIText(strings.getKey("sidebar/project/app").toUpperCase())
+  );
+  container.add(headerRow);
 
-function SidebarProjectApp( editor ) {
+  // Title
 
-	const config = editor.config;
-	const signals = editor.signals;
-	const strings = editor.strings;
+  const titleRow = new UIRow();
+  const title = new UIInput(config.getKey("project/title"))
+    .setLeft("100px")
+    .setWidth("150px")
+    .onChange(function () {
+      config.setKey("project/title", this.getValue());
+    });
 
-	const save = editor.utils.save;
+  titleRow.add(
+    new UIText(strings.getKey("sidebar/project/app/title")).setClass("Label")
+  );
+  titleRow.add(title);
 
-	const container = new UIPanel();
-	container.setId( 'app' );
+  container.add(titleRow);
 
-	const headerRow = new UIRow();
-	headerRow.add( new UIText( strings.getKey( 'sidebar/project/app' ).toUpperCase() ) );
-	container.add( headerRow );
+  // Editable
 
-	// Title
+  const editableRow = new UIRow();
+  const editable = new UICheckbox(config.getKey("project/editable"))
+    .setLeft("100px")
+    .onChange(function () {
+      config.setKey("project/editable", this.getValue());
+    });
 
-	const titleRow = new UIRow();
-	const title = new UIInput( config.getKey( 'project/title' ) ).setLeft( '100px' ).setWidth( '150px' ).onChange( function () {
+  editableRow.add(
+    new UIText(strings.getKey("sidebar/project/app/editable")).setClass("Label")
+  );
+  editableRow.add(editable);
 
-		config.setKey( 'project/title', this.getValue() );
+  container.add(editableRow);
 
-	} );
+  // Play/Stop
 
-	titleRow.add( new UIText( strings.getKey( 'sidebar/project/app/title' ) ).setClass( 'Label' ) );
-	titleRow.add( title );
+  let isPlaying = false;
 
-	container.add( titleRow );
+  const playButton = new UIButton(strings.getKey("sidebar/project/app/play"));
+  playButton.setWidth("170px");
+  playButton.setMarginLeft("120px");
+  playButton.setMarginBottom("10px");
+  playButton.onClick(function () {
+    if (isPlaying === false) {
+      isPlaying = true;
+      playButton.setTextContent(strings.getKey("sidebar/project/app/stop"));
+      signals.startPlayer.dispatch();
+    } else {
+      isPlaying = false;
+      playButton.setTextContent(strings.getKey("sidebar/project/app/play"));
+      signals.stopPlayer.dispatch();
+    }
+  });
 
-	// Editable
+  container.add(playButton);
 
-	const editableRow = new UIRow();
-	const editable = new UICheckbox( config.getKey( 'project/editable' ) ).setLeft( '100px' ).onChange( function () {
+  // Publish
 
-		config.setKey( 'project/editable', this.getValue() );
+  const publishButton = new UIButton(
+    strings.getKey("sidebar/project/app/publish")
+  );
+  publishButton.setWidth("170px");
+  publishButton.setMarginLeft("120px");
+  publishButton.setMarginBottom("10px");
+  publishButton.onClick(function () {
+    const toZip = {};
 
-	} );
+    //
 
-	editableRow.add( new UIText( strings.getKey( 'sidebar/project/app/editable' ) ).setClass( 'Label' ) );
-	editableRow.add( editable );
+    let output = editor.toJSON();
+    output.metadata.type = "App";
+    delete output.history;
 
-	container.add( editableRow );
+    output = JSON.stringify(output, null, "\t");
+    output = output.replace(/[\n\t]+([\d\.e\-\[\]]+)/g, "$1");
 
-	// Play/Stop
+    toZip["app.json"] = strToU8(output);
 
-	let isPlaying = false;
+    //
 
-	const playButton = new UIButton( strings.getKey( 'sidebar/project/app/play' ) );
-	playButton.setWidth( '170px' );
-	playButton.setMarginLeft( '120px' );
-	playButton.setMarginBottom( '10px' );
-	playButton.onClick( function () {
+    const title = config.getKey("project/title");
+    const zipped = zipSync(toZip, { level: 9 });
 
-		if ( isPlaying === false ) {
+    const blob = new Blob([zipped.buffer], { type: "application/zip" });
 
-			isPlaying = true;
-			playButton.setTextContent( strings.getKey( 'sidebar/project/app/stop' ) );
-			signals.startPlayer.dispatch();
+    save(blob, (title !== "" ? title : "untitled") + ".zip");
+    // const manager = new THREE.LoadingManager(function () {
+    //   const zipped = zipSync(toZip, { level: 9 });
 
-		} else {
+    //   const blob = new Blob([zipped.buffer], { type: "application/zip" });
 
-			isPlaying = false;
-			playButton.setTextContent( strings.getKey( 'sidebar/project/app/play' ) );
-			signals.stopPlayer.dispatch();
+    //   save(blob, (title !== "" ? title : "untitled") + ".zip");
+    // });
 
-		}
+    // const loader = new THREE.FileLoader(manager);
+    // loader.load( 'js/libs/app/index.html', function ( content ) {
 
-	} );
+    // 	content = content.replace( '<!-- title -->', title );
 
-	container.add( playButton );
+    // 	const includes = [];
 
-	// Publish
+    // 	content = content.replace( '<!-- includes -->', includes.join( '\n\t\t' ) );
 
-	const publishButton = new UIButton( strings.getKey( 'sidebar/project/app/publish' ) );
-	publishButton.setWidth( '170px' );
-	publishButton.setMarginLeft( '120px' );
-	publishButton.setMarginBottom( '10px' );
-	publishButton.onClick( function () {
+    // 	let editButton = '';
 
-		const toZip = {};
+    // 	if ( config.getKey( 'project/editable' ) ) {
 
-		//
+    // 		editButton = [
+    // 			'			let button = document.createElement( \'a\' );',
+    // 			'			button.href = \'https://threejs.org/editor/#file=\' + location.href.split( \'/\' ).slice( 0, - 1 ).join( \'/\' ) + \'/app.json\';',
+    // 			'			button.style.cssText = \'position: absolute; bottom: 20px; right: 20px; padding: 10px 16px; color: #fff; border: 1px solid #fff; border-radius: 20px; text-decoration: none;\';',
+    // 			'			button.target = \'_blank\';',
+    // 			'			button.textContent = \'EDIT\';',
+    // 			'			document.body.appendChild( button );',
+    // 		].join( '\n' );
 
-		let output = editor.toJSON();
-		output.metadata.type = 'App';
-		delete output.history;
+    // 	}
 
-		output = JSON.stringify( output, null, '\t' );
-		output = output.replace( /[\n\t]+([\d\.e\-\[\]]+)/g, '$1' );
+    // 	content = content.replace( '\t\t\t/* edit button */', editButton );
 
-		toZip[ 'app.json' ] = strToU8( output );
+    // 	toZip[ 'index.html' ] = strToU8( content );
 
-		//
+    // } );
+    // loader.load( 'js/libs/app.js', function ( content ) {
 
-		const title = config.getKey( 'project/title' );
+    // 	toZip[ 'js/app.js' ] = strToU8( content );
 
-		const manager = new THREE.LoadingManager( function () {
+    // } );
+    // loader.load( '../build/three.module.js', function ( content ) {
 
-			const zipped = zipSync( toZip, { level: 9 } );
+    // 	toZip[ 'js/three.module.js' ] = strToU8( content );
 
-			const blob = new Blob( [ zipped.buffer ], { type: 'application/zip' } );
+    // } );
+  });
+  container.add(publishButton);
 
-			save( blob, ( title !== '' ? title : 'untitled' ) + '.zip' );
+  // Signals
 
-		} );
+  signals.editorCleared.add(function () {
+    title.setValue("");
+    config.setKey("project/title", "");
+  });
 
-		const loader = new THREE.FileLoader( manager );
-		loader.load( 'js/libs/app/index.html', function ( content ) {
-
-			content = content.replace( '<!-- title -->', title );
-
-			const includes = [];
-
-			content = content.replace( '<!-- includes -->', includes.join( '\n\t\t' ) );
-
-			let editButton = '';
-
-			if ( config.getKey( 'project/editable' ) ) {
-
-				editButton = [
-					'			let button = document.createElement( \'a\' );',
-					'			button.href = \'https://threejs.org/editor/#file=\' + location.href.split( \'/\' ).slice( 0, - 1 ).join( \'/\' ) + \'/app.json\';',
-					'			button.style.cssText = \'position: absolute; bottom: 20px; right: 20px; padding: 10px 16px; color: #fff; border: 1px solid #fff; border-radius: 20px; text-decoration: none;\';',
-					'			button.target = \'_blank\';',
-					'			button.textContent = \'EDIT\';',
-					'			document.body.appendChild( button );',
-				].join( '\n' );
-
-			}
-
-			content = content.replace( '\t\t\t/* edit button */', editButton );
-
-			toZip[ 'index.html' ] = strToU8( content );
-
-		} );
-		loader.load( 'js/libs/app.js', function ( content ) {
-
-			toZip[ 'js/app.js' ] = strToU8( content );
-
-		} );
-		loader.load( '../build/three.module.js', function ( content ) {
-
-			toZip[ 'js/three.module.js' ] = strToU8( content );
-
-		} );
-
-	} );
-	container.add( publishButton );
-
-	// Signals
-
-	signals.editorCleared.add( function () {
-
-		title.setValue( '' );
-		config.setKey( 'project/title', '' );
-
-	} );
-
-	return container;
-
+  return container;
 }
 
 export { SidebarProjectApp };

@@ -29,9 +29,12 @@ function Viewport(editor) {
   const container = new UIPanel();
   container.setId("viewport");
   container.setPosition("absolute");
-
-  container.add(new ViewportControls(editor));
-  container.add(new ViewportInfo(editor));
+  if (editor.showViewportInfo) {
+    container.add(new ViewportInfo(editor));
+  }
+  if (editor.showViewportControls) {
+    container.add(new ViewportControls(editor));
+  }
   if (editor.showViewportToolbar) {
     container.add(new ViewportToolbar(editor));
   }
@@ -1034,7 +1037,8 @@ function Viewport(editor) {
       object !== null &&
       object !== scene &&
       object !== camera &&
-      !editor.enablePoint
+      !editor.enablePoint &&
+      editor.enableSelect
     ) {
       box.setFromObject(object, true);
       if (box.isEmpty() === false) {
@@ -1434,7 +1438,8 @@ function Viewport(editor) {
       renderer.autoClear = false;
       if (grid.visible === true) renderer.render(grid, camera);
       if (sceneHelpers.visible === true) renderer.render(sceneHelpers, camera);
-      if (renderer.xr.isPresenting !== true) viewHelper.render(renderer);
+      if (renderer.xr.isPresenting !== true && editor.showViewHelper === true)
+        viewHelper.render(renderer);
       renderer.autoClear = true;
     }
 
