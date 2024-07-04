@@ -159,6 +159,7 @@ function Editor() {
   this.enableSelect = true;
   this.enableChildSelect = false;
   this.enablePoint = false;
+  this.enableFocus = true;
   this.showViewportToolbar = true;
   this.showViewportInfo = true;
   this.showViewportControls = true;
@@ -219,9 +220,9 @@ Editor.prototype = {
 
     if (parent === undefined) {
       this.scene.add(object);
-      let n = performance.now();
+      // let n = performance.now();
       // this.worldOctree.fromGraphNode(object);
-      console.log(performance.now() - n);
+      // console.log(performance.now() - n);
     } else {
       parent.children.splice(index, 0, object);
       object.parent = parent;

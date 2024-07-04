@@ -58,7 +58,7 @@ function SidebarProjectApp(editor) {
   );
   editableRow.add(editable);
 
-  container.add(editableRow);
+  // container.add(editableRow);
 
   // Play/Stop
 
@@ -80,7 +80,7 @@ function SidebarProjectApp(editor) {
     }
   });
 
-  container.add(playButton);
+  // container.add(playButton);
 
   // Publish
 
@@ -91,8 +91,6 @@ function SidebarProjectApp(editor) {
   publishButton.setMarginLeft("120px");
   publishButton.setMarginBottom("10px");
   publishButton.onClick(function () {
-    const toZip = {};
-
     //
 
     let output = editor.toJSON();
@@ -102,16 +100,13 @@ function SidebarProjectApp(editor) {
     output = JSON.stringify(output, null, "\t");
     output = output.replace(/[\n\t]+([\d\.e\-\[\]]+)/g, "$1");
 
-    toZip["app.json"] = strToU8(output);
-
     //
 
     const title = config.getKey("project/title");
-    const zipped = zipSync(toZip, { level: 9 });
 
-    const blob = new Blob([zipped.buffer], { type: "application/zip" });
+    const blob = new Blob([strToU8(output)], { type: "application/json" });
 
-    save(blob, (title !== "" ? title : "untitled") + ".zip");
+    save(blob, (title !== "" ? title : "app") + ".json");
     // const manager = new THREE.LoadingManager(function () {
     //   const zipped = zipSync(toZip, { level: 9 });
 

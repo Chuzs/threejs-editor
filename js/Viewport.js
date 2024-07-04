@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 import { TransformControls } from "three/addons/controls/TransformControls.js";
+import CameraControls from "three/addons/controls/CameraControls.js";
 
 import { UIPanel } from "./libs/ui.js";
 
@@ -22,6 +23,7 @@ import { AddObjectCommand } from "./commands/AddObjectCommand.js";
 import { ViewportToolbar } from "./Viewport.Toolbar.js";
 import { PlayerControls } from "./PlayerControls.js";
 
+CameraControls.install({ THREE: THREE });
 function Viewport(editor) {
   const selector = editor.selector;
   const signals = editor.signals;
@@ -229,6 +231,17 @@ function Viewport(editor) {
       event.button === 0 && handleClick();
       event.button === 2 && editor.deselect();
     }
+    if (viewControls.enabled) {
+      const intersects = selector.getPointerIntersects(onUpPosition, camera);
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        const position = intersect.point;
+        position.y = 1;
+        const lookat = camera.position.lerp(position, 1 + 1e-5);
+        lookat.y = 1;
+        intersect.normal.y === 1 && moveTo(position, lookat);
+      }
+    }
     document.removeEventListener("mouseup", onMouseUp);
   }
 
@@ -317,7 +330,9 @@ function Viewport(editor) {
       const intersect = intersects[0];
       intersect.object.userData.guidePosition =
         editor.mouseHelper.guidePosition;
-      signals.objectFocused.dispatch(intersect.object);
+      if (intersect.object.type === "Mesh") {
+        signals.objectFocused.dispatch(intersect.object);
+      }
     }
   }
   function onMouseRightClick(event) {
@@ -896,8 +911,65 @@ function Viewport(editor) {
     editor.worldOctree,
     container.dom
   );
-  viewHelper.center = controls.center;
+  const viewControls = new CameraControls(camera, container.dom);
+  viewControls.enabled = false;
+  viewControls.maxDistance = 1e-5;
+  viewControls.minZoom = 0.5;
+  viewControls.maxZoom = 5;
+  viewControls.dragToOffset = false;
+  viewControls.distance = 1;
+  viewControls.dampingFactor = 0.01; // 阻尼运动
+  viewControls.truckSpeed = 0.01; // 拖动速度
+  viewControls.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
+  viewControls.mouseButtons.right = CameraControls.ACTION.NONE;
+  viewControls.touches.two = CameraControls.ACTION.TOUCH_ZOOM;
+  viewControls.touches.three = CameraControls.ACTION.NONE;
 
+  // 逆向控制
+  viewControls.azimuthRotateSpeed = -0.5; // 方位角旋转速度。
+  viewControls.polarRotateSpeed = -0.5; // 极旋转的速度。
+  viewControls.saveState();
+  const { position, lookAt } = {
+    position: { x: 0, y: 1, z: 0 },
+    lookAt: { x: 1, y: 1, z: 1 },
+  };
+  const lookatV3 = new THREE.Vector3(position.x, position.y, position.z);
+  lookatV3.lerp(new THREE.Vector3(lookAt.x, lookAt.y, lookAt.z), 1e-5);
+  viewControls.zoomTo(0.8);
+  viewControls.setLookAt(
+    position.x,
+    position.y,
+    position.z,
+    lookatV3.x,
+    lookatV3.y,
+    lookatV3.z,
+    false
+  );
+  viewHelper.center = controls.center;
+  function moveTo(position, lookat, duration) {
+    viewControls.saveState();
+    const lookatV3 = new THREE.Vector3(position.x, position.y, position.z);
+    lookatV3.lerp(new THREE.Vector3(lookat.x, lookat.y, lookat.z), 1e-5);
+
+    // 获取当前的lookAt参数
+    const fromPosition = new THREE.Vector3();
+    const fromLookAt = new THREE.Vector3();
+    viewControls.getPosition(fromPosition);
+    viewControls.getTarget(fromLookAt);
+
+    const lookatV32 = new THREE.Vector3(position.x, position.y, position.z);
+    lookatV32.lerp(new THREE.Vector3(lookat.x, lookat.y, lookat.z), 1e-5);
+
+    viewControls.setLookAt(
+      position.x,
+      position.y,
+      position.z,
+      lookatV3.x,
+      lookatV3.y,
+      lookatV3.z,
+      true
+    );
+  }
   // signals
 
   signals.personChanged.add(function (person) {
@@ -905,10 +977,17 @@ function Viewport(editor) {
       case "":
         controls.enabled = true;
         playerControls.enabled = false;
+        viewControls.enabled = false;
         break;
       case "first":
         controls.enabled = false;
         playerControls.enabled = true;
+        viewControls.enabled = false;
+        break;
+      case "view":
+        controls.enabled = false;
+        playerControls.enabled = false;
+        viewControls.enabled = true;
         break;
     }
   });
@@ -1052,7 +1131,9 @@ function Viewport(editor) {
   });
 
   signals.objectFocused.add(function (object) {
-    controls.focus(object);
+    if (editor.enableFocus) {
+      controls.focus(object);
+    }
   });
 
   signals.geometryChanged.add(function (object) {
@@ -1296,7 +1377,6 @@ function Viewport(editor) {
 
   signals.showHelpersChanged.add(function (appearanceStates) {
     grid.visible = appearanceStates.gridHelper;
-
     sceneHelpers.traverse(function (object) {
       switch (object.type) {
         case "CameraHelper": {
@@ -1322,7 +1402,6 @@ function Viewport(editor) {
         }
       }
     });
-
     render();
   });
 
@@ -1380,6 +1459,9 @@ function Viewport(editor) {
     }
     if (playerControls.enabled) {
       playerControls.update(delta);
+    }
+    if (viewControls.enabled) {
+      viewControls.update(delta);
     }
 
     if (needsUpdate === true) render();

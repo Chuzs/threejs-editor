@@ -12,7 +12,7 @@ function Config() {
 
     autosave: true,
 
-    "project/title": "",
+    "project/title": "app",
     "project/editable": false,
     "project/vr": false,
 

@@ -952,7 +952,7 @@ const materialList = [
     animation: false,
     direction: "horizontal",
     position: "top",
-    materialType: "floor",
+    materialType: "ceiling",
     filePath: "models/glb/floor-1.glb",
     // coverUrl: "images/model-icon/20.png",
     modelType: "model",

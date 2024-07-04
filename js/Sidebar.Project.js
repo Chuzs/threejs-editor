@@ -15,7 +15,7 @@ function SidebarProject(editor) {
 
   container.add(new SidebarProjectApp(editor));
 
-  container.add(new SidebarProjectImage(editor));
+  // container.add(new SidebarProjectImage(editor));
 
   if ("SharedArrayBuffer" in window) {
     container.add(new SidebarProjectVideo(editor));

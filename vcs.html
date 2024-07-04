@@ -82,6 +82,7 @@
       window.editor = editor; // Expose editor to Console
       window.THREE = THREE; // Expose THREE to APP Scripts and Console
       editor.enableSelect = false;
+      editor.enableFocus = false;
       editor.showViewportToolbar = false;
       editor.showViewportControls = false;
       editor.showViewportInfo = false;
@@ -95,6 +96,13 @@
       const sidebar = new Sidebar(editor);
 
       const menubar = new Menubar(editor);
+
+      const appearanceStates = {
+        gridHelper: false,
+        cameraHelpers: false,
+        lightHelpers: false,
+        skeletonHelpers: false,
+      };
 
       //
 
@@ -116,7 +124,10 @@
       loader.crossOrigin = "";
       loader.load(file, function (text) {
         editor.clear();
-        editor.fromJSON(JSON.parse(text));
+        editor.fromJSON(JSON.parse(text)).then(() => {
+          editor.signals.showHelpersChanged.dispatch(appearanceStates);
+          editor.signals.personChanged.dispatch("view");
+        });
       });
 
       if ("serviceWorker" in navigator) {
