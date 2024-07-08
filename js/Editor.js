@@ -130,6 +130,7 @@ function Editor() {
 
   this.videoState = null;
   this.placeModel = null;
+  this.renderer = null;
 
   this.object = {};
   this.geometries = {};

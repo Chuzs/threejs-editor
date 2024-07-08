@@ -228,6 +228,7 @@ class EditorControls extends THREE.EventDispatcher {
     }
 
     function onKeyDown(event) {
+      console.log(event.code);
       switch (event.code) {
         case "ArrowUp":
         case "KeyW":
@@ -252,7 +253,7 @@ class EditorControls extends THREE.EventDispatcher {
         case "Space":
           scope.moveUp = true;
           break;
-        case "KeyZ":
+        case "ShiftLeft":
           scope.moveDown = true;
           break;
       }
@@ -283,7 +284,7 @@ class EditorControls extends THREE.EventDispatcher {
         case "Space":
           scope.moveUp = false;
           break;
-        case "KeyZ":
+        case "ShiftLeft":
           scope.moveDown = false;
           break;
       }

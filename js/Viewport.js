@@ -74,6 +74,7 @@ function Viewport(editor) {
     if (intersects.length > 0) {
       const object = intersects[0].object;
       if (object.name === "play_video") {
+        console.log(222);
         playVideo(object.parent, object.parent.userData.url);
       }
     }
@@ -221,16 +222,12 @@ function Viewport(editor) {
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
 
-    if (editor.enablePoint) {
-      if (event.button === 0) {
-        onMouseLeftClick(event);
-      } else if (event.button === 2) {
-        onMouseRightClick(event);
-      }
-    } else {
-      event.button === 0 && handleClick();
-      event.button === 2 && editor.deselect();
+    if (event.button === 0) {
+      editor.enablePoint ? onMouseLeftClick(event) : handleClick();
+    } else if (event.button === 2) {
+      editor.enablePoint ? onMouseRightClick(event) : editor.deselect();
     }
+
     if (viewControls.enabled) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
       if (intersects.length > 0) {
@@ -254,9 +251,9 @@ function Viewport(editor) {
       camera
     );
     if (intersects.length > 0) {
-      if (!editor.dragModel) return;
       const intersect = intersects[0];
       togglePlayIcon(intersect);
+      if (!editor.dragModel) return;
       updateDragModel(intersects);
       if (editor.toAddMesh) {
         if (editor.dragModel.point) {
@@ -311,8 +308,8 @@ function Viewport(editor) {
 
     const array = getMousePosition(container.dom, touch.clientX, touch.clientY);
     onUpPosition.fromArray(array);
-
-    handleClick();
+    // 和mouseUp中事件会重复触发
+    // handleClick();
 
     document.removeEventListener("touchend", onTouchEnd);
   }
@@ -831,6 +828,7 @@ function Viewport(editor) {
     }
   }
   async function videoCallback(mesh, videoUrl) {
+    console.log(11);
     const meshCover = mesh.material;
     editor.video.src = videoUrl;
 
@@ -844,7 +842,7 @@ function Viewport(editor) {
       videoTexture.mapping = THREE.CubeRefractionMapping;
       videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
       videoTexture.format = THREE.RGBAFormat;
-      videoTexture.flipY = !1;
+      // videoTexture.flipY = !1;
       videoTexture.needsUpdate = !0;
       videoTexture.encoding = THREE.sRGBEncoding;
       const material = new THREE.MeshBasicMaterial({
@@ -1053,8 +1051,8 @@ function Viewport(editor) {
 
       container.dom.removeChild(renderer.domElement);
     }
-
     renderer = newRenderer;
+    editor.renderer = renderer;
 
     renderer.setAnimationLoop(animate);
     renderer.setClearColor(0xaaaaaa);
@@ -1466,6 +1464,9 @@ function Viewport(editor) {
 
     if (needsUpdate === true) render();
 
+    if (self.onUpdate) {
+      self.onUpdate();
+    }
     updatePT();
   }
 

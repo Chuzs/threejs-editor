@@ -36,7 +36,6 @@ function SidebarProjectApp(editor) {
     .onChange(function () {
       config.setKey("project/title", this.getValue());
     });
-
   titleRow.add(
     new UIText(strings.getKey("sidebar/project/app/title")).setClass("Label")
   );
@@ -160,8 +159,8 @@ function SidebarProjectApp(editor) {
   // Signals
 
   signals.editorCleared.add(function () {
-    title.setValue("");
-    config.setKey("project/title", "");
+    title.setValue("app");
+    config.setKey("project/title", "app");
   });
 
   return container;
