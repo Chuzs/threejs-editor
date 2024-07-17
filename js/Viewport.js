@@ -390,7 +390,10 @@ function Viewport(editor) {
         let toAddMeshSize = new THREE.Box3()
           .setFromObject(editor.toAddMesh)
           .getSize(new THREE.Vector3());
-        // console.log("🚀 ~ onMouseLeftClick ~ closestObjectSize:", closestObjectSize);
+        // console.log(
+        //   "🚀 ~ onMouseLeftClick ~ closestObjectSize:",
+        //   closestObjectSize
+        // );
         let direction = intersect.point.clone().sub(closestObject.position);
         const { x, y, z } = direction.clone();
         if (dragModel.direction === "horizontal") {
@@ -916,7 +919,7 @@ function Viewport(editor) {
   viewControls.maxZoom = 5;
   viewControls.dragToOffset = false;
   viewControls.distance = 1;
-  viewControls.dampingFactor = 0.01; // 阻尼运动
+  viewControls.dampingFactor = 0.03; // 阻尼运动
   viewControls.truckSpeed = 0.01; // 拖动速度
   viewControls.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
   viewControls.mouseButtons.right = CameraControls.ACTION.NONE;
@@ -971,6 +974,7 @@ function Viewport(editor) {
   // signals
 
   signals.personChanged.add(function (person) {
+    camera.rotation.set(0, 0, 0);
     switch (person) {
       case "":
         controls.enabled = true;
@@ -1055,7 +1059,7 @@ function Viewport(editor) {
     editor.renderer = renderer;
 
     renderer.setAnimationLoop(animate);
-    renderer.setClearColor(0xaaaaaa);
+    renderer.setClearColor(0x000000);
 
     if (window.matchMedia) {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -1085,7 +1089,7 @@ function Viewport(editor) {
     pmremGenerator.compileEquirectangularShader();
 
     pathtracer = new ViewportPathtracer(renderer);
-
+    renderer.shadowMap.Enabled = true;
     container.dom.appendChild(renderer.domElement);
 
     render();
