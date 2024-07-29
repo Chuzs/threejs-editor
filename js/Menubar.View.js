@@ -113,7 +113,7 @@ function MenubarView(editor) {
     gridHelper: true,
     cameraHelpers: true,
     lightHelpers: true,
-    skeletonHelpers: true,
+    skeletonHelpers: false,
   };
 
   const appearanceSubmenuTitle = new UIRow()

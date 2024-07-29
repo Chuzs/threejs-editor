@@ -15,7 +15,7 @@ _DEFAULT_CAMERA.lookAt(new THREE.Vector3());
 
 const _DEFAULT_LIGHT = new THREE.AmbientLight(0xffffff, 2);
 _DEFAULT_LIGHT.name = "AmbientLight";
-
+window.THREE = THREE;
 function Editor() {
   const Signal = signals.Signal; // eslint-disable-line no-undef
 
@@ -131,6 +131,8 @@ function Editor() {
   this.videoState = null;
   this.placeModel = null;
   this.renderer = null;
+  this.characterModel = null;
+  this.capsule = null;
 
   this.object = {};
   this.geometries = {};

@@ -48,7 +48,7 @@ function ViewportToolbar(editor) {
   container.add(point);
 
   const firstIcon = document.createElement("img");
-  firstIcon.title = strings.getKey("viewport/toolbar/first");
+  firstIcon.title = strings.getKey("viewport/toolbar/third");
   firstIcon.src = "images/16.png";
 
   const first = new UIButton();
@@ -57,7 +57,7 @@ function ViewportToolbar(editor) {
   first.dom.addEventListener("mousedown", function (e) {
     e.stopPropagation();
     editor.firstPerson = !editor.firstPerson;
-    signals.personChanged.dispatch(editor.firstPerson ? "first" : "");
+    signals.personChanged.dispatch(editor.firstPerson ? "third" : "");
     first.toggleClass("selected", editor.firstPerson);
   });
   container.add(first);

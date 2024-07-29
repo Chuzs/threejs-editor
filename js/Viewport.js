@@ -1,7 +1,18 @@
 import * as THREE from "three";
-
+import {
+  computeBoundsTree,
+  MeshBVH,
+  disposeBoundsTree,
+  acceleratedRaycast,
+} from "three-mesh-bvh";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import CameraControls from "three/addons/controls/CameraControls.js";
+
+import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
+import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 
 import { UIPanel } from "./libs/ui.js";
 
@@ -22,6 +33,7 @@ import { ViewportPathtracer } from "./Viewport.Pathtracer.js";
 import { AddObjectCommand } from "./commands/AddObjectCommand.js";
 import { ViewportToolbar } from "./Viewport.Toolbar.js";
 import { PlayerControls } from "./PlayerControls.js";
+import { Character } from "./Character.js";
 
 CameraControls.install({ THREE: THREE });
 function Viewport(editor) {
@@ -51,6 +63,40 @@ function Viewport(editor) {
   const scene = editor.scene;
   const sceneHelpers = editor.sceneHelpers;
 
+  // hdr
+  const exrLoader = new EXRLoader();
+  exrLoader.loadAsync("../models/hdr/default.exr").then((res) => {
+    console.log("初始化hdr");
+    res.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = res;
+    // scene.background = res;
+  });
+  const rgbLoader = new RGBELoader();
+
+  rgbLoader.loadAsync("../models/hdr/default.hdr").then((texture) => {
+    console.log("初始化hdr");
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.generateMipmaps = true;
+    // scene.background = texture;
+    // scene.environment = texture;
+  });
+
+  editor.capsule = new THREE.Mesh(
+    new RoundedBoxGeometry(0.6, 1.5, 0.6, 5, 0.5),
+    new THREE.MeshBasicMaterial({ color: "red" })
+  );
+
+  // character
+  editor.loader
+    .loadAsyncModel({
+      filePath: "../models/glb/defaultCharacter.glb",
+      fileType: "glb",
+    })
+    .then((res) => {
+      console.log(res);
+      editor.characterModel = res;
+    });
   // helpers
 
   const GRID_COLORS_LIGHT = [0x999999, 0x777777];
@@ -621,6 +667,7 @@ function Viewport(editor) {
 
   function onDrop(event) {
     const dragModel = editor.dragModel;
+    if (!dragModel) return;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onUpPosition.fromArray(array);
     const intersects = selector.getPointerIntersectsIncludeGridHelp(
@@ -907,6 +954,8 @@ function Viewport(editor) {
     signals.cameraChanged.dispatch(camera);
     signals.refreshSidebarObject3D.dispatch(camera);
   });
+  const orbitControls = new OrbitControls(camera, container.dom);
+  orbitControls.enabled = false;
   const playerControls = new PlayerControls(
     camera,
     editor.worldOctree,
@@ -971,20 +1020,131 @@ function Viewport(editor) {
       true
     );
   }
+
+  function addLocalCharacter(position) {
+    if (editor.localCharacter) return;
+    const characterPosition = position || { x: 0, y: 0.1, z: 0 };
+    const character = new Character(
+      editor.characterModel,
+      { position: characterPosition },
+      !0,
+      camera,
+      orbitControls,
+      editor.collider
+    );
+    editor.localCharacter = character;
+    // scene.add(character.model);
+    editor.addObject(character.model);
+    // signals.objectAdded.dispatch(character.model);
+    updateCollider(scene.children);
+  }
+  function removeLocalCharacter() {
+    let obj = scene.getObjectById(editor.localCharacter.model.id);
+    editor.removeObject(obj);
+    editor.localCharacter = null;
+  }
+  function updateCollider(e) {
+    editor.collider && editor.collider.removeFromParent();
+    editor.collider = createBVHMesh(e);
+    scene.add(editor.collider);
+    // viewControls.collider = editor.collider;
+    // viewControls.capsule = editor.capsule;
+    editor.localCharacter &&
+      (editor.localCharacter.control.collider = editor.collider);
+  }
+
+  function createBVHMesh(e) {
+    THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+    THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+
+    THREE.Mesh.prototype.raycast = acceleratedRaycast;
+    const planeGeometry = new THREE.PlaneGeometry(500, 500);
+    planeGeometry.rotateX(Math.PI / 2);
+    planeGeometry.deleteAttribute("uv");
+    planeGeometry.deleteAttribute("normal");
+    const a = [planeGeometry];
+    for (const t of e)
+      1 != t.userData.cannon &&
+        t.traverse((e) => {
+          const t =
+            e.name.startsWith("pnt_") || e.parent.name.startsWith("pnt_");
+          if (
+            e.isMesh &&
+            e.geometry &&
+            e.geometry.index &&
+            e.geometry.attributes.position.isBufferAttribute &&
+            e.visible &&
+            e.parent.visible &&
+            !t
+          ) {
+            e.geometry.computeBoundsTree(), e.updateMatrixWorld();
+            const t = e.geometry.clone();
+            t.applyMatrix4(e.matrixWorld);
+            for (const e in t.attributes)
+              "position" !== e && t.deleteAttribute(e);
+            t.morphTargetsRelative &&
+              ((t.morphTargetsRelative = !1), (t.morphAttributes = [])),
+              a.push(t);
+          }
+        });
+    const l = mergeGeometries(a, !1);
+    if (l) {
+      l.boundsTree = new MeshBVH(l);
+      const e = new THREE.Mesh(l);
+      e.visible = !1;
+      const t = e.material;
+      return (
+        (t.wireframe = !0),
+        (t.opacity = 0.5),
+        (t.transparent = !0),
+        (e.name = "collider"),
+        e
+      );
+    }
+  }
+
   // signals
 
   signals.personChanged.add(function (person) {
-    camera.rotation.set(0, 0, 0);
     switch (person) {
       case "":
         controls.enabled = true;
         playerControls.enabled = false;
         viewControls.enabled = false;
+        orbitControls.enabled = false;
+        removeLocalCharacter();
         break;
       case "first":
+        camera.rotation.set(0, 0, 0);
         controls.enabled = false;
         playerControls.enabled = true;
         viewControls.enabled = false;
+        break;
+      case "third":
+        camera.rotation.set(0, 0, 0);
+        controls.enabled = false;
+        playerControls.enabled = false;
+        viewControls.enabled = false;
+        orbitControls.enabled = true;
+        let characterPosition = camera.position.clone().setY(0.1);
+        camera.position.setY(1.9);
+        addLocalCharacter(characterPosition);
+        const i = camera.quaternion.clone();
+        i.set(0, i.y, 0, i.w);
+        editor.localCharacter.model.translateZ(-1.8);
+        editor.localCharacter.model.position.setY(0);
+        editor.localCharacter.model.quaternion.copy(i);
+        orbitControls.target.set(
+          editor.localCharacter.model.position.x,
+          editor.localCharacter.model.position.y + 2,
+          editor.localCharacter.model.position.z
+        );
+        orbitControls.maxDistance = 5;
+        orbitControls.minDistance = 0;
+        orbitControls.autoRotate = !1;
+        orbitControls.enableZoom = !0;
+        orbitControls.update();
+
         break;
       case "view":
         controls.enabled = false;
@@ -999,6 +1159,7 @@ function Viewport(editor) {
       editor.dragModel.point = null;
       editor.dragModel.rotation = { x: 0, y: 0, z: 0 };
     }
+    updateCollider(scene.children);
     // editor.toAddMesh = null;
   });
   signals.selectModeChanged.add(function (mode) {
@@ -1407,6 +1568,11 @@ function Viewport(editor) {
     render();
   });
 
+  signals.helperAdded.add((helper) => {
+    if (helper.type === "SkeletonHelper") {
+      helper.visible = false;
+    }
+  });
   signals.cameraResetted.add(updateAspectRatio);
 
   signals.showLeftbarChanged.add((showLeftbar) => {
@@ -1446,6 +1612,9 @@ function Viewport(editor) {
       }
     }
 
+    if (editor.localCharacter) {
+      editor.localCharacter.update(delta);
+    }
     // View Helper
 
     if (viewHelper.animating === true) {
@@ -1458,6 +1627,9 @@ function Viewport(editor) {
     }
     if (controls.enabled) {
       controls.update(delta);
+    }
+    if (orbitControls.enabled) {
+      orbitControls.update(delta);
     }
     if (playerControls.enabled) {
       playerControls.update(delta);
