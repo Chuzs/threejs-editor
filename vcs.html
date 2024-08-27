@@ -66,7 +66,7 @@
       import { Viewport } from "./js/Viewport.js";
       import { Sidebar } from "./js/Sidebar.js";
       import { Menubar } from "./js/Menubar.js";
-
+      console.log("[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]", 1111);
       window.URL = window.URL || window.webkitURL;
       window.BlobBuilder =
         window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
@@ -79,6 +79,11 @@
 
       const editor = new Editor();
 
+      if ("serviceWorker" in navigator) {
+        try {
+          navigator.serviceWorker.register("sw.js");
+        } catch (error) {}
+      }
       window.editor = editor; // Expose editor to Console
       window.THREE = THREE; // Expose THREE to APP Scripts and Console
       editor.enableSelect = false;
@@ -119,22 +124,18 @@
       const hash = window.location.hash;
 
       const file = "app.json";
+      console.log("[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]", 2222);
 
       const loader = new THREE.FileLoader();
       loader.crossOrigin = "";
       loader.load(file, function (text) {
         editor.clear();
-        editor.fromJSON(JSON.parse(text)).then(() => {
+        editor.fromJSONVcs(JSON.parse(text)).then(() => {
           editor.signals.showHelpersChanged.dispatch(appearanceStates);
           editor.signals.personChanged.dispatch("view");
         });
       });
-
-      if ("serviceWorker" in navigator) {
-        try {
-          navigator.serviceWorker.register("sw.js");
-        } catch (error) {}
-      }
+      console.log("[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]", 333);
     </script>
   </body>
 </html>

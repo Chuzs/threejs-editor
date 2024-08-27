@@ -181,6 +181,10 @@ function Editor() {
   this.viewportShading = "default";
 
   this.addCamera(this.camera);
+  console.log(
+    "[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]",
+    "editor.js loaded."
+  );
 }
 
 Editor.prototype = {
@@ -234,7 +238,14 @@ Editor.prototype = {
     this.signals.objectAdded.dispatch(object);
     this.signals.sceneGraphChanged.dispatch();
   },
-
+  addObjectVcs: function (object, parent, index) {
+    if (parent === undefined) {
+      this.scene.add(object);
+    } else {
+      parent.children.splice(index, 0, object);
+      object.parent = parent;
+    }
+  },
   moveObject: function (object, parent, before) {
     if (parent === undefined) {
       parent = this.scene;
@@ -588,15 +599,34 @@ Editor.prototype = {
 
     this.history.fromJSON(json.history);
     this.scripts = json.scripts;
-
-    this.setScene(await loader.parseAsync(json.scene));
+    if (json.scene) {
+      this.setScene(await loader.parseAsync(json.scene));
+    }
 
     if (json.environment === "ModelViewer") {
       this.signals.sceneEnvironmentChanged.dispatch(json.environment);
       this.signals.refreshSidebarEnvironment.dispatch();
     }
   },
+  fromJSONVcs: async function (json) {
+    var loader = new THREE.ObjectLoader();
+    var camera = await loader.parseAsync(json.camera);
 
+    const existingUuid = this.camera.uuid;
+    const incomingUuid = camera.uuid;
+
+    // copy all properties, including uuid
+    this.camera.copy(camera);
+    this.camera.uuid = incomingUuid;
+
+    delete this.cameras[existingUuid]; // remove old entry [existingUuid, this.camera]
+    this.cameras[incomingUuid] = this.camera; // add new entry [incomingUuid, this.camera]
+
+    this.signals.cameraResetted.dispatch();
+
+    this.history.fromJSON(json.history);
+    this.scripts = json.scripts;
+  },
   toJSON: function () {
     // scripts clean up
 
@@ -644,7 +674,61 @@ Editor.prototype = {
       environment: environment,
     };
   },
+  toJSONWithoutScene: function () {
+    // scripts clean up
 
+    var scene = this.scene;
+    var scripts = this.scripts;
+
+    for (var key in scripts) {
+      var script = scripts[key];
+
+      if (
+        script.length === 0 ||
+        scene.getObjectByProperty("uuid", key) === undefined
+      ) {
+        delete scripts[key];
+      }
+    }
+
+    // honor modelviewer environment
+
+    let environment = null;
+
+    if (
+      this.scene.environment !== null &&
+      this.scene.environment.isRenderTargetTexture === true
+    ) {
+      environment = "ModelViewer";
+    }
+
+    //
+
+    return {
+      metadata: {},
+      project: {
+        shadows: this.config.getKey("project/renderer/shadows"),
+        shadowType: this.config.getKey("project/renderer/shadowType"),
+        toneMapping: this.config.getKey("project/renderer/toneMapping"),
+        toneMappingExposure: this.config.getKey(
+          "project/renderer/toneMappingExposure"
+        ),
+      },
+      camera: this.viewportCamera.toJSON(),
+      scripts: this.scripts,
+      history: this.history.toJSON(),
+      environment: environment,
+    };
+  },
+  getAnimations: function () {
+    const animations = [];
+
+    this.scene.traverse(function (object) {
+      animations.push(...object.animations);
+    });
+
+    return animations;
+  },
   objectByUuid: function (uuid) {
     return this.scene.getObjectByProperty("uuid", uuid, true);
   },

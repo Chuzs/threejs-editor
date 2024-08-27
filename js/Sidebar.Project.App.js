@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { zipSync, strToU8 } from "three/addons/libs/fflate.module.js";
-
+import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import {
   UIButton,
   UICheckbox,
@@ -91,21 +91,47 @@ function SidebarProjectApp(editor) {
   publishButton.setMarginBottom("10px");
   publishButton.onClick(function () {
     //
+    const toZip = {};
 
-    let output = editor.toJSON();
+    let output = editor.toJSONWithoutScene();
     output.metadata.type = "App";
     delete output.history;
 
     output = JSON.stringify(output, null, "\t");
     output = output.replace(/[\n\t]+([\d\.e\-\[\]]+)/g, "$1");
-
+    toZip["app.json"] = strToU8(output);
     //
 
     const title = config.getKey("project/title");
 
-    const blob = new Blob([strToU8(output)], { type: "application/json" });
+    // const blob = new Blob([strToU8(output)], { type: "application/json" });
 
-    save(blob, (title !== "" ? title : "app") + ".json");
+    // save(blob, (title !== "" ? title : "app") + ".json");
+
+    const scene = editor.scene;
+    const animations = editor.getAnimations();
+
+    const optimizedAnimations = [];
+
+    for (const animation of animations) {
+      optimizedAnimations.push(animation.clone().optimize());
+    }
+
+    const exporter = new GLTFExporter();
+
+    exporter.parse(
+      scene,
+      function (result) {
+        // const blob = new Blob([result], { type: "application/octet-stream" });
+        // save(blob, "scene.glb");
+        toZip["scene.glb"] = new Uint8Array(result);
+        const zipped = zipSync(toZip, { level: 9 });
+        const blob = new Blob([zipped.buffer], { type: "application/zip" });
+        save(blob, (title !== "" ? title : "untitled") + ".zip");
+      },
+      undefined,
+      { binary: true, animations: optimizedAnimations }
+    );
     // const manager = new THREE.LoadingManager(function () {
     //   const zipped = zipSync(toZip, { level: 9 });
 

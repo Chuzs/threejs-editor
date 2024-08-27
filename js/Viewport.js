@@ -6,14 +6,13 @@ import {
   acceleratedRaycast,
 } from "three-mesh-bvh";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { TransformControls } from "three/addons/controls/TransformControls.js";
+import { TransformControls } from "three/addons/controls/TransformControlsMerge.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import CameraControls from "three/addons/controls/CameraControls.js";
 
 import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
-
 import { UIPanel } from "./libs/ui.js";
 
 import { EditorControls } from "./EditorControls.js";
@@ -32,6 +31,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { ViewportPathtracer } from "./Viewport.Pathtracer.js";
 import { AddObjectCommand } from "./commands/AddObjectCommand.js";
 import { ViewportToolbar } from "./Viewport.Toolbar.js";
+import { ViewportStats } from "./Viewport.Stats.js";
 import { PlayerControls } from "./PlayerControls.js";
 import { Character } from "./Character.js";
 
@@ -52,6 +52,8 @@ function Viewport(editor) {
   if (editor.showViewportToolbar) {
     container.add(new ViewportToolbar(editor));
   }
+  const viewportStats = new ViewportStats(editor);
+  container.add(viewportStats.container);
 
   //
 
@@ -64,22 +66,22 @@ function Viewport(editor) {
   const sceneHelpers = editor.sceneHelpers;
 
   // hdr
-  const exrLoader = new EXRLoader();
-  exrLoader.loadAsync("../models/hdr/default.exr").then((res) => {
-    console.log("初始化hdr");
-    res.mapping = THREE.EquirectangularReflectionMapping;
-    scene.environment = res;
-    // scene.background = res;
-  });
+  // const exrLoader = new EXRLoader();
+  // exrLoader.loadAsync("../models/hdr/default.exr").then((res) => {
+  //   console.log("初始化hdr");
+  //   res.mapping = THREE.EquirectangularReflectionMapping;
+  //   scene.environment = res;
+  //   // scene.background = res;
+  // });
   const rgbLoader = new RGBELoader();
 
-  rgbLoader.loadAsync("../models/hdr/default.hdr").then((texture) => {
+  rgbLoader.loadAsync("../models/hdr/venice_sunset_1k.hdr").then((texture) => {
     console.log("初始化hdr");
     texture.mapping = THREE.EquirectangularReflectionMapping;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.generateMipmaps = true;
     // scene.background = texture;
-    // scene.environment = texture;
+    scene.environment = texture;
   });
 
   editor.capsule = new THREE.Mesh(
@@ -279,9 +281,9 @@ function Viewport(editor) {
       if (intersects.length > 0) {
         const intersect = intersects[0];
         const position = intersect.point;
-        position.y = 1;
+        position.y = 2;
         const lookat = camera.position.lerp(position, 1 + 1e-5);
-        lookat.y = 1;
+        lookat.y = 2;
         intersect.normal.y === 1 && moveTo(position, lookat);
       }
     }
@@ -968,7 +970,7 @@ function Viewport(editor) {
   viewControls.maxZoom = 5;
   viewControls.dragToOffset = false;
   viewControls.distance = 1;
-  viewControls.dampingFactor = 0.03; // 阻尼运动
+  viewControls.dampingFactor = 0.01; // 阻尼运动
   viewControls.truckSpeed = 0.01; // 拖动速度
   viewControls.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
   viewControls.mouseButtons.right = CameraControls.ACTION.NONE;
@@ -980,8 +982,8 @@ function Viewport(editor) {
   viewControls.polarRotateSpeed = -0.5; // 极旋转的速度。
   viewControls.saveState();
   const { position, lookAt } = {
-    position: { x: 0, y: 1, z: 0 },
-    lookAt: { x: 1, y: 1, z: 1 },
+    position: { x: 0, y: 2, z: 0 },
+    lookAt: { x: 1, y: 2, z: 1 },
   };
   const lookatV3 = new THREE.Vector3(position.x, position.y, position.z);
   lookatV3.lerp(new THREE.Vector3(lookAt.x, lookAt.y, lookAt.z), 1e-5);
@@ -1002,13 +1004,13 @@ function Viewport(editor) {
     lookatV3.lerp(new THREE.Vector3(lookat.x, lookat.y, lookat.z), 1e-5);
 
     // 获取当前的lookAt参数
-    const fromPosition = new THREE.Vector3();
-    const fromLookAt = new THREE.Vector3();
-    viewControls.getPosition(fromPosition);
-    viewControls.getTarget(fromLookAt);
+    // const fromPosition = new THREE.Vector3();
+    // const fromLookAt = new THREE.Vector3();
+    // viewControls.getPosition(fromPosition);
+    // viewControls.getTarget(fromLookAt);
 
-    const lookatV32 = new THREE.Vector3(position.x, position.y, position.z);
-    lookatV32.lerp(new THREE.Vector3(lookat.x, lookat.y, lookat.z), 1e-5);
+    // const lookatV32 = new THREE.Vector3(position.x, position.y, position.z);
+    // lookatV32.lerp(new THREE.Vector3(lookat.x, lookat.y, lookat.z), 1e-5);
 
     viewControls.setLookAt(
       position.x,
@@ -1023,7 +1025,7 @@ function Viewport(editor) {
 
   function addLocalCharacter(position) {
     if (editor.localCharacter) return;
-    const characterPosition = position || { x: 0, y: 0.1, z: 0 };
+    const characterPosition = position || { x: 0, y: 0, z: 0 };
     const character = new Character(
       editor.characterModel,
       { position: characterPosition },
@@ -1046,7 +1048,7 @@ function Viewport(editor) {
   function updateCollider(e) {
     editor.collider && editor.collider.removeFromParent();
     editor.collider = createBVHMesh(e);
-    scene.add(editor.collider);
+    sceneHelpers.add(editor.collider);
     // viewControls.collider = editor.collider;
     // viewControls.capsule = editor.capsule;
     editor.localCharacter &&
@@ -1067,7 +1069,7 @@ function Viewport(editor) {
       1 != t.userData.cannon &&
         t.traverse((e) => {
           const t =
-            e.name.startsWith("pnt_") || e.parent.name.startsWith("pnt_");
+            e.name?.startsWith("pnt_") || e.parent.name?.startsWith("pnt_");
           if (
             e.isMesh &&
             e.geometry &&
@@ -1108,6 +1110,7 @@ function Viewport(editor) {
   signals.personChanged.add(function (person) {
     switch (person) {
       case "":
+        camera.rotation.set(0, 0, 0);
         controls.enabled = true;
         playerControls.enabled = false;
         viewControls.enabled = false;
@@ -1126,7 +1129,7 @@ function Viewport(editor) {
         playerControls.enabled = false;
         viewControls.enabled = false;
         orbitControls.enabled = true;
-        let characterPosition = camera.position.clone().setY(0.1);
+        let characterPosition = camera.position.clone().setY(0);
         camera.position.setY(1.9);
         addLocalCharacter(characterPosition);
         const i = camera.quaternion.clone();
@@ -1174,7 +1177,7 @@ function Viewport(editor) {
     }
   });
   signals.editorCleared.add(function () {
-    controls.center.set(0, 0, 0);
+    // controls.center.set(0, 0, 0);
     pathtracer.reset();
 
     scene.add(editor.light);
@@ -1589,61 +1592,67 @@ function Viewport(editor) {
   let prevActionsInUse = 0;
 
   const clock = new THREE.Clock(); // only used for animations
-
+  const FPS = 60; // 指的是 30帧每秒的情况
+  const singleFrameTime = 1 / FPS;
+  let timeStamp = 0;
   function animate() {
-    const mixer = editor.mixer;
     const delta = clock.getDelta();
+    timeStamp += delta;
 
-    let needsUpdate = true;
+    if (timeStamp > singleFrameTime) {
+      const mixer = editor.mixer;
+      let needsUpdate = true;
+      // Animations
+      const actions = mixer.stats.actions;
+      if (actions.inUse > 0 || prevActionsInUse > 0) {
+        prevActionsInUse = actions.inUse;
+        mixer.update(delta);
+        needsUpdate = true;
 
-    // Animations
-
-    const actions = mixer.stats.actions;
-
-    if (actions.inUse > 0 || prevActionsInUse > 0) {
-      prevActionsInUse = actions.inUse;
-
-      mixer.update(delta);
-      needsUpdate = true;
-
-      if (editor.selected !== null) {
-        editor.selected.updateWorldMatrix(false, true); // avoid frame late effect for certain skinned meshes (e.g. Michelle.glb)
-        selectionBox.box.setFromObject(editor.selected, true); // selection box should reflect current animation state
+        if (editor.selected !== null) {
+          editor.selected.updateWorldMatrix(false, true); // avoid frame late effect for certain skinned meshes (e.g. Michelle.glb)
+          selectionBox.box.setFromObject(editor.selected, true); // selection box should reflect current animation state
+        }
       }
-    }
 
-    if (editor.localCharacter) {
-      editor.localCharacter.update(delta);
-    }
-    // View Helper
+      if (editor.localCharacter) {
+        editor.localCharacter.update(delta);
+      }
+      if (controls.enabled) {
+        controls.update(delta);
+      }
+      if (orbitControls.enabled) {
+        orbitControls.update(delta);
+      }
+      if (playerControls.enabled) {
+        playerControls.update(delta);
+      }
+      if (viewControls.enabled) {
+        viewControls.update(delta);
+      }
+      // View Helper
 
-    if (viewHelper.animating === true) {
-      viewHelper.update(delta);
-      needsUpdate = true;
-    }
+      if (viewHelper.animating === true) {
+        viewHelper.update(delta);
+        needsUpdate = true;
+      }
 
-    if (renderer.xr.isPresenting === true) {
-      needsUpdate = true;
-    }
-    if (controls.enabled) {
-      controls.update(delta);
-    }
-    if (orbitControls.enabled) {
-      orbitControls.update(delta);
-    }
-    if (playerControls.enabled) {
-      playerControls.update(delta);
-    }
-    if (viewControls.enabled) {
-      viewControls.update(delta);
-    }
+      if (renderer.xr.isPresenting === true) {
+        needsUpdate = true;
+      }
 
-    if (needsUpdate === true) render();
+      if (needsUpdate === true) render(delta);
 
-    if (self.onUpdate) {
-      self.onUpdate();
+      if (self.onUpdate) {
+        self.onUpdate();
+      }
+      updatePT();
+      if (viewportStats) {
+        viewportStats.stats.update();
+      }
+      // 剩余的时间合并进入下次的判断计算 这里使用取余数是因为 当页页面失去焦点又重新获得焦点的时候，delta数值会非常大， 这个时候就需要
+      timeStamp = timeStamp % singleFrameTime;
     }
-    updatePT();
   }
 
   function initPT() {

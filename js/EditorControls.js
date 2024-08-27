@@ -11,7 +11,7 @@ class EditorControls extends THREE.EventDispatcher {
     this.panSpeed = 0.002;
     this.zoomSpeed = 0.1;
     this.rotationSpeed = 0.005;
-    this.movementSpeed = 5;
+    this.movementSpeed = 20;
 
     this.moveForward = false;
     this.moveBackward = false;
@@ -87,6 +87,7 @@ class EditorControls extends THREE.EventDispatcher {
 
       object.position.add(delta);
 
+      // center.add(delta);
       scope.dispatchEvent(changeEvent);
     };
 

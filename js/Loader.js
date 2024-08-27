@@ -746,12 +746,16 @@ function Loader(editor) {
     return new Promise(async (resolve, reject) => {
       switch (model.fileType) {
         case "glb":
+          console.log("[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]", 666);
           const loader = await createGLTFLoader();
-
+          console.log("[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]", 777);
           loader.load(model.filePath, function (result) {
             const scene = result.scene;
             scene.name = model.name;
-
+            console.log(
+              "[" + /\d\d\:\d\d\:\d\d/.exec(new Date())[0] + "]",
+              888
+            );
             scene.animations.push(...result.animations);
 
             resolve(scene);

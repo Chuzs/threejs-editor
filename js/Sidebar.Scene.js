@@ -67,6 +67,7 @@ function SidebarScene(editor) {
   }
 
   function escapeHTML(html) {
+    if (!html) return "";
     return html
       .replace(/&/g, "&amp;")
       .replace(/"/g, "&quot;")

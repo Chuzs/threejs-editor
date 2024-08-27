@@ -688,6 +688,15 @@ select:hover {
 .Panel {
   color: #888;
 }
+#viewportStats {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+#viewportStats > div {
+  position: absolute !important;
+  width: 80px;
+}
 
 /* */
 
