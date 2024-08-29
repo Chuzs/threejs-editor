@@ -11,9 +11,18 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import CameraControls from "three/addons/controls/CameraControls.js";
 
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
 import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { UIPanel } from "./libs/ui.js";
+import Reflector from "./libs/reflector/reflector.js";
 
 import { EditorControls } from "./EditorControls.js";
 
@@ -35,6 +44,31 @@ import { ViewportStats } from "./Viewport.Stats.js";
 import { PlayerControls } from "./PlayerControls.js";
 import { Character } from "./Character.js";
 
+// 着色器配置
+const vertexShader = `
+     varying vec2 vUv;
+	 void main() {
+		vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+	 }
+`;
+// 着色器配置
+const fragmentShader = `
+		uniform sampler2D baseTexture;
+		uniform sampler2D bloomTexture;
+		uniform vec3 glowColor; 
+
+		varying vec2 vUv;
+
+		void main() {
+			vec4 baseColor = texture2D(baseTexture, vUv);
+			vec4 bloomColor = texture2D(bloomTexture, vUv);
+
+			// 调整辉光颜色
+			vec4 glow = vec4(glowColor, 1.0);
+
+			gl_FragColor = baseColor + glow * bloomColor;
+		}`;
 CameraControls.install({ THREE: THREE });
 function Viewport(editor) {
   const selector = editor.selector;
@@ -211,6 +245,13 @@ function Viewport(editor) {
 
   sceneHelpers.add(transformControls);
 
+  // const s = new THREE.WebGLCubeRenderTarget(512, {
+  //   format: THREE.RGBAFormat,
+  //   generateMipmaps: !0,
+  // });
+  // const cube = new THREE.CubeCamera(1, 3500, s);
+  // scene.add(cube);
+  // let reflector = new Reflector({ id: 1 });
   //
 
   const xr = new XR(editor, transformControls); // eslint-disable-line no-unused-vars
@@ -1105,6 +1146,87 @@ function Viewport(editor) {
     }
   }
 
+  // 创建效果合成器
+  function createEffectComposer() {
+    const { offsetHeight, offsetWidth } = container.dom;
+    editor.effectComposer = new EffectComposer(
+      renderer,
+      new THREE.WebGLRenderTarget(offsetWidth, offsetHeight)
+    );
+    const renderPass = new RenderPass(scene, camera);
+
+    editor.effectComposer.addPass(renderPass);
+    editor.outlinePass = new OutlinePass(
+      new THREE.Vector2(offsetWidth, offsetHeight),
+      scene,
+      camera
+    );
+    editor.outlinePass.visibleEdgeColor = new THREE.Color("#FF8C00"); // 可见边缘的颜色
+    editor.outlinePass.hiddenEdgeColor = new THREE.Color("#8a90f3"); // 不可见边缘的颜色
+    editor.outlinePass.edgeGlow = 2; // 发光强度
+    editor.outlinePass.usePatternTexture = false; // 是否使用纹理图案
+    editor.outlinePass.edgeThickness = 1; // 边缘浓度
+    editor.outlinePass.edgeStrength = 4; // 边缘的强度，值越高边框范围越大
+    editor.outlinePass.pulsePeriod = 0; // 闪烁频率，值越大频率越低
+    editor.effectComposer.addPass(editor.outlinePass);
+    let outputPass = new OutputPass();
+    editor.effectComposer.addPass(outputPass);
+
+    editor.effectFXAA = new ShaderPass(FXAAShader);
+    const pixelRatio = renderer.getPixelRatio();
+    editor.effectFXAA.uniforms.resolution.value.set(
+      1 / (offsetWidth * pixelRatio),
+      1 / (offsetHeight * pixelRatio)
+    );
+    editor.effectFXAA.renderToScreen = true;
+    editor.effectFXAA.needsSwap = true;
+    editor.effectComposer.addPass(editor.effectFXAA);
+
+    //创建辉光效果
+    editor.unrealBloomPass = new UnrealBloomPass(
+      new THREE.Vector2(offsetWidth, offsetHeight),
+      1.5,
+      0.4,
+      0.85
+    );
+    // 辉光合成器
+    const renderTargetParameters = {
+      minFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat,
+      stencilBuffer: false,
+    };
+    const glowRender = new THREE.WebGLRenderTarget(
+      offsetWidth * 2,
+      offsetHeight * 2,
+      renderTargetParameters
+    );
+    editor.glowComposer = new EffectComposer(renderer, glowRender);
+    editor.glowComposer.renderToScreen = false;
+    editor.glowRenderPass = new RenderPass(scene, camera);
+    editor.glowComposer.addPass(editor.glowRenderPass);
+    editor.glowComposer.addPass(editor.unrealBloomPass);
+    // 着色器
+    editor.shaderPass = new ShaderPass(
+      new THREE.ShaderMaterial({
+        uniforms: {
+          baseTexture: { value: null },
+          bloomTexture: { value: editor.glowComposer.renderTarget2.texture },
+          tDiffuse: { value: null },
+          glowColor: { value: null },
+        },
+        vertexShader,
+        fragmentShader,
+        defines: {},
+      }),
+      "baseTexture"
+    );
+
+    editor.shaderPass.material.uniforms.glowColor.value = new THREE.Color();
+    editor.shaderPass.renderToScreen = true;
+    editor.shaderPass.needsSwap = true;
+    editor.shaderPass.name = "ShaderColor";
+  }
+
   // signals
 
   signals.personChanged.add(function (person) {
@@ -1255,7 +1377,9 @@ function Viewport(editor) {
     pathtracer = new ViewportPathtracer(renderer);
     renderer.shadowMap.Enabled = true;
     container.dom.appendChild(renderer.domElement);
-
+    // createEffectComposer();
+    // reflector.generate({ renderer, cube, camera, scene });
+    // scene.add(reflector.mesh);
     render();
   });
 
@@ -1289,6 +1413,7 @@ function Viewport(editor) {
       if (box.isEmpty() === false) {
         selectionBox.visible = true;
       }
+      // editor.outlinePass.selectedObjects = [object];
 
       transformControls.attach(object);
     }
@@ -1592,7 +1717,7 @@ function Viewport(editor) {
   let prevActionsInUse = 0;
 
   const clock = new THREE.Clock(); // only used for animations
-  const FPS = 60; // 指的是 30帧每秒的情况
+  const FPS = 30; // 指的是 30帧每秒的情况
   const singleFrameTime = 1 / FPS;
   let timeStamp = 0;
   function animate() {
@@ -1642,7 +1767,9 @@ function Viewport(editor) {
       }
 
       if (needsUpdate === true) render(delta);
-
+      // if (reflector.mesh) {
+      //   reflector.mesh.material.update();
+      // }
       if (self.onUpdate) {
         self.onUpdate();
       }
@@ -1701,7 +1828,9 @@ function Viewport(editor) {
       container.dom.offsetHeight
     );
     renderer.render(scene, editor.viewportCamera);
-
+    // if (editor.effectComposer) {
+    //   editor.effectComposer.render();
+    // }
     if (camera === editor.viewportCamera) {
       renderer.autoClear = false;
       if (grid.visible === true) renderer.render(grid, camera);

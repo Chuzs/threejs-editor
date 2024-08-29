@@ -24,9 +24,6 @@ function Leftbar(editor) {
       }
       if (container.selected != "create") {
         create.flexListbox.setValue({});
-      } else {
-        editor.selectMode = "point";
-        signals.selectModeChanged.dispatch("point");
       }
 
       editor.editMode = container.selected;

@@ -173,6 +173,11 @@ function Editor() {
   this.toAddMesh = null;
   this.editMode = "create";
   this.selectMode = null;
+  this.effectComposer = null;
+  this.outlinePass = null;
+  this.unrealBloomPass = null;
+  this.glowComposer = null;
+  this.shaderPass = null;
   this.helpers = {};
 
   this.cameras = {};
