@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { Octree } from "three/addons/math/Octree.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Config } from "./Config.js";
 import { Loader } from "./Loader.js";
 import { History as _History } from "./History.js";
@@ -604,6 +606,12 @@ Editor.prototype = {
 
     this.history.fromJSON(json.history);
     this.scripts = json.scripts;
+    // if (json.scene.geometries.length > 0) {
+    //   json.scene.geometries = json.scene.geometries.filter(
+    //     (item) => item.type != "TextGeometry"
+    //   );
+    // }
+
     if (json.scene) {
       this.setScene(await loader.parseAsync(json.scene));
     }
@@ -751,6 +759,7 @@ Editor.prototype = {
   },
   createImageMesh: async function (url) {
     const texture = await new THREE.TextureLoader().loadAsync(url);
+    texture.flipY = !1;
     const data = texture.source.data;
     const aspectRatio = data.width / data.height;
     let plane = new THREE.PlaneGeometry(aspectRatio, 1);
@@ -791,6 +800,36 @@ Editor.prototype = {
     });
     const mesh = new THREE.Mesh(geometry, material);
     return mesh;
+  },
+  createText: async function (text) {
+    let fontName = "FZKai-Z03S", // helvetiker, optimer, gentilis, droid sans, droid serif
+      fontWeight = "regular"; // normal bold
+    let font = undefined;
+    const loader = new FontLoader();
+    font = await loader.loadAsync(
+      "../examples/fonts/" + fontName + "_" + fontWeight + ".typeface.json"
+    );
+    const textGeo = new TextGeometry(text, {
+      font,
+      size: 1,
+      depth: 0.1,
+      curveSegments: 2,
+      bevelThickness: 0.05,
+      bevelSize: 0.05,
+      bevelEnabled: true,
+    });
+
+    textGeo.computeBoundingBox();
+    const materials = [
+      new THREE.MeshPhysicalMaterial({ color: 0xff00ff }), // front
+      new THREE.MeshPhysicalMaterial({ color: 0xff00ff }), // side
+    ];
+    const textMesh = new THREE.Mesh(textGeo, materials);
+    textMesh.name = text;
+    textMesh.rotation.x = 0;
+    textMesh.rotation.y = Math.PI * 2;
+
+    return textMesh;
   },
   utils: {
     save: save,

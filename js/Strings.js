@@ -1046,6 +1046,15 @@ function Strings(config) {
       "sidebar/geometry/tube_geometry/curvetype": "曲线类型",
       "sidebar/geometry/tube_geometry/tension": "张力",
 
+      "sidebar/geometry/text_geometry/font": "字体",
+      "sidebar/geometry/text_geometry/size": "字体大小",
+      "sidebar/geometry/text_geometry/depth": "字体厚度",
+      "sidebar/geometry/text_geometry/curveSegments": "曲线点数",
+      "sidebar/geometry/text_geometry/bevelEnabled": "斜角",
+      "sidebar/geometry/text_geometry/bevelThickness": "上斜角深度",
+      "sidebar/geometry/text_geometry/bevelSize": "延伸距离",
+      "sidebar/geometry/text_geometry/bevelSegments": "斜角分段数",
+
       "sidebar/material/new": "更新",
       "sidebar/material/copy": "复制",
       "sidebar/material/paste": "粘贴",
@@ -1165,6 +1174,7 @@ function Strings(config) {
       "leftbar/hotspot/add": "添加热点",
       "leftbar/hotspot/add/image": "图片",
       "leftbar/hotspot/add/video": "视频",
+      "leftbar/hotspot/add/text": "文本",
       "leftbar/hotspot/list": "热点列表",
       "leftbar/create": "建造",
       "leftbar/house": "展厅",

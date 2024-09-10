@@ -1,5 +1,6 @@
 import { LeftbarHotspotAddImage } from "./Leftbar.Hotspot.Add.Image.js";
 import { LeftbarHotspotAddVideo } from "./Leftbar.Hotspot.Add.Video.js";
+import { LeftbarHotspotAddText } from "./Leftbar.Hotspot.Add.Text.js";
 import { UITabbedPanel } from "./libs/ui.js";
 
 function LeftbarHotspotAdd(editor) {
@@ -20,6 +21,12 @@ function LeftbarHotspotAdd(editor) {
     "hotspostAddVideo",
     strings.getKey("leftbar/hotspot/add/video"),
     hotspostAddVideo
+  );
+  const hotspostAddText = new LeftbarHotspotAddText(editor);
+  container.addTab(
+    "hotspostAddText",
+    strings.getKey("leftbar/hotspot/add/text"),
+    hotspostAddText
   );
   container.select("hotspostAddImage");
   return container;

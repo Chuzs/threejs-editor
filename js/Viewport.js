@@ -107,22 +107,26 @@ function Viewport(editor) {
   //   scene.environment = res;
   //   // scene.background = res;
   // });
-  const rgbLoader = new RGBELoader();
+  function initHdr() {
+    const rgbLoader = new RGBELoader();
 
-  rgbLoader.loadAsync("../models/hdr/venice_sunset_1k.hdr").then((texture) => {
-    console.log("初始化hdr");
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.generateMipmaps = true;
-    // scene.background = texture;
-    scene.environment = texture;
-  });
-
+    rgbLoader
+      .loadAsync("../models/hdr/venice_sunset_1k.hdr")
+      .then((texture) => {
+        console.log("初始化hdr");
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.generateMipmaps = true;
+        // scene.background = texture;
+        scene.environment = texture;
+        signals.sceneGraphChanged.dispatch();
+      });
+  }
+  initHdr();
   editor.capsule = new THREE.Mesh(
     new RoundedBoxGeometry(0.6, 1.5, 0.6, 5, 0.5),
     new THREE.MeshBasicMaterial({ color: "red" })
   );
-
   // character
   editor.loader
     .loadAsyncModel({
@@ -291,6 +295,8 @@ function Viewport(editor) {
   function handleClick() {
     if (onDownPosition.distanceTo(onUpPosition) === 0) {
       const intersects = selector.getPointerIntersects(onUpPosition, camera);
+      console.log(intersects);
+
       signals.intersectionsDetected.dispatch(intersects);
 
       render();
@@ -742,8 +748,12 @@ function Viewport(editor) {
   }
 
   function addModel(model) {
+    console.log(editor.toAddMesh);
+
     if (editor.toAddMesh) {
       const toAddMesh = editor.toAddMesh.clone();
+      console.log("🚀 ~ addModel ~ toAddMesh:", toAddMesh);
+
       if (model && model.point) {
         const { x, y, z } = model.point;
         toAddMesh.position.set(x, y, z);
@@ -763,98 +773,101 @@ function Viewport(editor) {
     }
   }
 
-  async function addHotspot(model, intersects) {
+  function addHotspot(model, intersects) {
+    console.log(intersects);
+
     if (intersects.length > 0) {
       const intersect = intersects[0];
       const object = intersect.object;
       const intersectPoint = intersect.point.clone();
-      if (object.userData.name?.startsWith("Flat_")) {
-        const userData = {
-          ...model,
-          name: object.userData.name,
-          id: object.name,
-          objectId: object.id,
-          textureCenter: new THREE.Vector2(0.5, 0.5),
-          textureRotation: 0,
-          position: vector3ToCoordinate(intersectPoint),
-          guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
-          rotation: vector3ToCoordinate(editor.mouseHelper.rotation),
-        };
-
-        const texture = await new THREE.TextureLoader().loadAsync(
-          model.coverUrl
-        );
-        texture.flipY = !1;
-
-        // 立即使用纹理进行材质创建
-        const material = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: !0,
-          side: THREE.DoubleSide,
-        });
-        intersect.object.material = material;
-        if (model.fileType === "video") {
-          await addPlayBtn(object, { ...model, ...userData });
-        }
-        Object.assign(intersect.object.userData, userData);
-        render();
+      if (model.type == "3DText") {
+        addModel(editor.dragModel);
       } else {
-        const imageMesh = await editor.createImageMesh(model.coverUrl);
-        imageMesh.name = model.name;
-        imageMesh.position.set(
-          intersectPoint.x,
-          intersectPoint.y,
-          intersectPoint.z
-        );
-        const rotation = editor.mouseHelper.rotation.clone();
-        imageMesh.rotation.set(rotation.x, rotation.y, rotation.z);
-        imageMesh.translateZ(0.01);
-        const userData = {
-          ...model,
-          objectId: imageMesh.id,
-          position: vector3ToCoordinate(imageMesh.position),
-          // guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
-          rotation: vector3ToCoordinate(imageMesh.rotation),
-          scale: vector3ToCoordinate(imageMesh.scale),
-        };
-
-        imageMesh.userData = userData;
-        if (model.fileType === "video") {
-          await addPlayBtn(imageMesh, model);
-        }
-        editor.execute(new AddObjectCommand(editor, imageMesh));
+        addVideoAndImage(object, model, intersectPoint);
       }
     }
   }
-  async function addPlayBtn(e, t) {
-    if (e.children.length > 0) {
-      if (t.video && 1 == t.video.playBtn)
-        return void e.children[0].removeFromParent();
+  async function addVideoAndImage(object, model, intersectPoint) {
+    if (object.userData.name?.startsWith("Flat_")) {
+      const texture = await new THREE.TextureLoader().loadAsync(model.coverUrl);
+      texture.flipY = !1;
+      // 立即使用纹理进行材质创建
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: !0,
+        side: THREE.DoubleSide,
+      });
+      object.material = material;
+      const userData = {
+        ...model,
+        name: object.userData.name,
+        id: object.name,
+        objectId: object.id,
+        rotation: vector3ToCoordinate(editor.mouseHelper.rotation),
+      };
+      Object.assign(object.userData, userData);
+      if (model.fileType === "video") {
+        addPlayBtn(object, userData);
+      }
+    } else {
+      const imageMesh = editor.toAddMesh.clone();
+      imageMesh.name = model.name;
+      imageMesh.position.set(
+        intersectPoint.x,
+        intersectPoint.y,
+        intersectPoint.z
+      );
+      const rotation = editor.mouseHelper.rotation.clone();
+      imageMesh.rotation.set(rotation.x, rotation.y, rotation.z);
+      imageMesh.translateZ(0.01);
+      const userData = {
+        ...model,
+        objectId: imageMesh.id,
+        position: vector3ToCoordinate(imageMesh.position),
+        // guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
+        rotation: vector3ToCoordinate(imageMesh.rotation),
+        scale: vector3ToCoordinate(imageMesh.scale),
+      };
+
+      imageMesh.userData = userData;
+      if (model.fileType === "video") {
+        await addPlayBtn(imageMesh, model);
+      }
+      editor.execute(new AddObjectCommand(editor, imageMesh));
+    }
+    render();
+  }
+
+  async function addPlayBtn(object, userData) {
+    console.log(userData);
+
+    if (object.children.length > 0) {
       if (
-        ((e.children[0].visible =
-          "video" == t.type || ("live" == t.type && 1 != t.liveType)),
-        this.mediaPlayer.element)
+        ((object.children[0].visible = "video" == userData.fileType),
+        editor.mediaPlayer.element)
       ) {
-        const e = this.mediaPlayer.element;
-        e.pause();
+        editor.mediaPlayer.element.pause();
       }
     } else {
       const playTexture = await new THREE.TextureLoader().loadAsync(
         "images/icon_play.png"
       );
-
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(0.3, 0.3),
         new THREE.MeshBasicMaterial({ map: playTexture, transparent: !0 })
       );
       mesh.name = "play_video";
-      t.id.startsWith("Flat_") &&
-        mesh.rotation.set(t.rotation.x, t.rotation.y, t.rotation.z),
+      userData.id.startsWith("Flat_") &&
+        mesh.rotation.set(
+          userData.rotation.x,
+          userData.rotation.y,
+          userData.rotation.z
+        ),
         (mesh.renderOrder = 1);
-      const a = e.scale.y - e.scale.x;
+      const a = object.scale.y - object.scale.x;
       mesh.scale.setY(mesh.scale.y - a);
-      e.add(mesh);
       mesh.translateZ(0.051);
+      object.add(mesh);
     }
   }
 
@@ -921,7 +934,6 @@ function Viewport(editor) {
     }
   }
   async function videoCallback(mesh, videoUrl) {
-    console.log(11);
     const meshCover = mesh.material;
     editor.video.src = videoUrl;
 
@@ -935,7 +947,7 @@ function Viewport(editor) {
       videoTexture.mapping = THREE.CubeRefractionMapping;
       videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
       videoTexture.format = THREE.RGBAFormat;
-      // videoTexture.flipY = !1;
+      videoTexture.flipY = !1;
       videoTexture.needsUpdate = !0;
       videoTexture.encoding = THREE.sRGBEncoding;
       const material = new THREE.MeshBasicMaterial({
@@ -1302,9 +1314,8 @@ function Viewport(editor) {
     // controls.center.set(0, 0, 0);
     pathtracer.reset();
 
-    scene.add(editor.light);
-    initPT();
-    render();
+    // scene.add(editor.light);
+    initHdr();
   });
 
   signals.transformModeChanged.add(function (mode) {
@@ -1346,7 +1357,6 @@ function Viewport(editor) {
 
     renderer.setAnimationLoop(animate);
     renderer.setClearColor(0x000000);
-
     if (window.matchMedia) {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       mediaQuery.addEventListener("change", function (event) {
