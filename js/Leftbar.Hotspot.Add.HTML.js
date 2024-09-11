@@ -1,6 +1,6 @@
 import { UIFlexListbox, UIPanel } from "./libs/ui.js";
 
-function LeftbarHotspotAddText(editor) {
+function LeftbarHotspotAddHTML(editor) {
   const container = new UIPanel();
   container.setBorderTop("0");
   container.setId("hotspotAddText");
@@ -9,27 +9,24 @@ function LeftbarHotspotAddText(editor) {
     editor.dragModel = flexListbox.getValue();
     console.log(editor.dragModel);
 
-    const imageMesh = await editor.createText(editor.dragModel.name);
+    const imageMesh = editor.createHtml(editor.dragModel);
     editor.toAddMesh = imageMesh;
   });
-  const textList = [
+  const htmlList = [
     {
-      id: "text1",
-      name: "平面文字",
+      id: "html1",
+      name: "H5页面",
       modelType: "hotspot",
-      fileType: "text",
-    },
-    {
-      id: "text2",
-      name: "3D文字",
-      modelType: "hotspot",
-      fileType: "3DText",
+      fileType: "html",
+      width: "300px",
+      height: "600px",
+      scale: { x: 0.01, y: 0.01, z: 0.01 },
     },
   ];
-  flexListbox.setItems(textList);
+  flexListbox.setItems(htmlList);
   container.add(flexListbox);
 
   return container;
 }
 
-export { LeftbarHotspotAddText };
+export { LeftbarHotspotAddHTML };

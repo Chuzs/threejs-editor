@@ -2,6 +2,10 @@ import * as THREE from "three";
 import { Octree } from "three/addons/math/Octree.js";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
+import {
+  CSS3DObject,
+  CSS3DRenderer,
+} from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { Config } from "./Config.js";
 import { Loader } from "./Loader.js";
 import { History as _History } from "./History.js";
@@ -118,6 +122,7 @@ function Editor() {
   this.light = _DEFAULT_LIGHT.clone();
 
   this.scene = new THREE.Scene();
+  this.htmlScene = new THREE.Scene();
   this.scene.name = "Scene";
 
   this.sceneHelpers = new THREE.Scene();
@@ -223,6 +228,7 @@ Editor.prototype = {
 
   addObject: function (object, parent, index) {
     var scope = this;
+    console.log("🚀 ~ object:", object, parent, index);
 
     object.traverse(function (child) {
       if (child.geometry !== undefined) scope.addGeometry(child.geometry);
@@ -232,8 +238,10 @@ Editor.prototype = {
       scope.addHelper(child);
     });
 
-    if (parent === undefined) {
+    if (parent === undefined || parent === null) {
       this.scene.add(object);
+      console.log(this.scene.children.length);
+
       // let n = performance.now();
       // this.worldOctree.fromGraphNode(object);
       // console.log(performance.now() - n);
@@ -517,8 +525,11 @@ Editor.prototype = {
       this.select(this.camera);
       return;
     }
-
-    this.select(this.scene.getObjectById(id));
+    if (this.scene.getObjectById(id)) {
+      this.select(this.scene.getObjectById(id));
+    } else {
+      this.select(this.htmlScene.getObjectById(id));
+    }
   },
 
   selectByUuid: function (uuid) {
@@ -830,6 +841,19 @@ Editor.prototype = {
     textMesh.rotation.y = Math.PI * 2;
 
     return textMesh;
+  },
+  createHtml: function (model) {
+    const { width, height, scale } = model;
+    let iframe = document.createElement("iframe");
+    iframe.src = "http://127.0.0.1:8080";
+    iframe.style.height = height;
+    iframe.style.width = width;
+    iframe.style.border = "none";
+    let domEle = document.createElement("div");
+    domEle.appendChild(iframe);
+    let domEleObj = new CSS3DObject(domEle);
+    domEleObj.scale.set(scale.x, scale.y, scale.z);
+    return domEleObj;
   },
   utils: {
     save: save,

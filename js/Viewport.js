@@ -21,6 +21,11 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 
 import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
+
+import {
+  CSS3DObject,
+  CSS3DRenderer,
+} from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { UIPanel } from "./libs/ui.js";
 import Reflector from "./libs/reflector/reflector.js";
 
@@ -97,6 +102,7 @@ function Viewport(editor) {
 
   const camera = editor.camera;
   const scene = editor.scene;
+  const htmlScene = editor.htmlScene;
   const sceneHelpers = editor.sceneHelpers;
 
   // hdr
@@ -123,6 +129,11 @@ function Viewport(editor) {
       });
   }
   initHdr();
+  const css3DRenderer = new CSS3DRenderer();
+  css3DRenderer.setSize(container.dom.offsetWidth, container.dom.offsetHeight);
+  css3DRenderer.domElement.style.position = "absolute";
+  css3DRenderer.domElement.style.top = "0";
+  container.dom.appendChild(css3DRenderer.domElement);
   editor.capsule = new THREE.Mesh(
     new RoundedBoxGeometry(0.6, 1.5, 0.6, 5, 0.5),
     new THREE.MeshBasicMaterial({ color: "red" })
@@ -305,7 +316,7 @@ function Viewport(editor) {
 
   function onMouseDown(event) {
     // event.preventDefault();
-    if (event.target !== renderer.domElement) return;
+    // if (event.target !== renderer.domElement) return;
 
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onDownPosition.fromArray(array);
@@ -774,18 +785,71 @@ function Viewport(editor) {
   }
 
   function addHotspot(model, intersects) {
-    console.log(intersects);
+    console.log("🚀 ~ addHotspot ~ intersects:", intersects);
 
     if (intersects.length > 0) {
       const intersect = intersects[0];
       const object = intersect.object;
       const intersectPoint = intersect.point.clone();
-      if (model.type == "3DText") {
+      if (model.fileType == "3DText") {
         addModel(editor.dragModel);
-      } else {
+      } else if (model.fileType == "video" || model.fileType == "image") {
         addVideoAndImage(object, model, intersectPoint);
+      } else if (model.fileType == "html") {
+        addHtml(object, model, intersectPoint);
       }
     }
+  }
+  function addHtml(object, model, intersectPoint) {
+    console.log("🚀 ~ addHtml ~ object:", object);
+
+    const htmlMesh = editor.toAddMesh.clone();
+    htmlMesh.name = model.name;
+    if (object.name.indexOf("Flat_") > -1) {
+      const worldPosition = new THREE.Vector3();
+      object.getWorldPosition(worldPosition);
+      htmlMesh.position.set(worldPosition.x, worldPosition.y, worldPosition.z);
+      const box = new THREE.Box3().setFromObject(object);
+
+      // 计算尺寸
+      const size = new THREE.Vector3();
+      box.getSize(size);
+
+      // 获取长度、宽度和高度
+      const width = size.x * 100 + "px";
+      const height = size.y * 100 + "px";
+      const depth = size.z * 100 + "px";
+      htmlMesh.element.children[0].style.width = width;
+      htmlMesh.element.children[0].style.height = height;
+
+      console.log(`Width: ${width}, Height: ${height}, Depth: ${depth}`);
+    } else {
+      htmlMesh.position.set(
+        intersectPoint.x,
+        intersectPoint.y,
+        intersectPoint.z
+      );
+    }
+
+    const rotation = editor.mouseHelper.rotation.clone();
+    htmlMesh.rotation.set(rotation.x, rotation.y, rotation.z);
+    const userData = {
+      ...model,
+      objectId: htmlMesh.id,
+      position: vector3ToCoordinate(htmlMesh.position),
+      // guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
+      rotation: vector3ToCoordinate(htmlMesh.rotation),
+      scale: vector3ToCoordinate(htmlMesh.scale),
+      width: htmlMesh.element.children[0].style.width,
+      height: htmlMesh.element.children[0].style.height,
+    };
+    htmlMesh.url = htmlMesh.element.children[0].src;
+    htmlMesh.userData = userData;
+    console.log("🚀 ~ addHtml ~ htmlMesh:", htmlMesh);
+
+    editor.execute(new AddObjectCommand(editor, htmlMesh));
+
+    htmlScene.add(htmlMesh);
   }
   async function addVideoAndImage(object, model, intersectPoint) {
     if (object.userData.name?.startsWith("Flat_")) {
@@ -1460,7 +1524,9 @@ function Viewport(editor) {
     if (helper !== undefined && helper.isSkeletonHelper !== true) {
       helper.update();
     }
-
+    if (object.url && object.element) {
+      object.element.children[0].src = object.url;
+    }
     initPT();
     render();
   });
@@ -1671,6 +1737,10 @@ function Viewport(editor) {
     updateAspectRatio();
 
     renderer.setSize(container.dom.offsetWidth, container.dom.offsetHeight);
+    css3DRenderer.setSize(
+      container.dom.offsetWidth,
+      container.dom.offsetHeight
+    );
     pathtracer.setSize(container.dom.offsetWidth, container.dom.offsetHeight);
 
     render();
@@ -1838,6 +1908,7 @@ function Viewport(editor) {
       container.dom.offsetHeight
     );
     renderer.render(scene, editor.viewportCamera);
+    css3DRenderer.render(htmlScene, editor.viewportCamera);
     // if (editor.effectComposer) {
     //   editor.effectComposer.render();
     // }
