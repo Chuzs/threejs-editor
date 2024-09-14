@@ -49,7 +49,6 @@ function Storage() {
 
     set: function (data) {
       const start = performance.now();
-
       const transaction = database.transaction(["states"], "readwrite");
       const objectStore = transaction.objectStore("states");
       const request = objectStore.put(JSON.parse(JSON.stringify(data)), 0);

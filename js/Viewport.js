@@ -349,7 +349,7 @@ function Viewport(editor) {
   }
 
   function onMouseMove(event) {
-    if (event.target !== renderer.domElement) return;
+    // if (event.target !== renderer.domElement) return;
     const array = getMousePosition(container.dom, event.clientX, event.clientY);
     onMovePosition.fromArray(array);
     const intersects = selector.getPointerIntersectsIncludeGridHelp(
@@ -805,9 +805,12 @@ function Viewport(editor) {
 
     const htmlMesh = editor.toAddMesh.clone();
     htmlMesh.name = model.name;
+    const iframe = htmlMesh.element.children[0];
     if (object.name.indexOf("Flat_") > -1) {
       const worldPosition = new THREE.Vector3();
       object.getWorldPosition(worldPosition);
+      console.log("🚀 ~ addHtml ~ worldPosition:", worldPosition);
+
       htmlMesh.position.set(worldPosition.x, worldPosition.y, worldPosition.z);
       const box = new THREE.Box3().setFromObject(object);
 
@@ -819,8 +822,8 @@ function Viewport(editor) {
       const width = size.x * 100 + "px";
       const height = size.y * 100 + "px";
       const depth = size.z * 100 + "px";
-      htmlMesh.element.children[0].style.width = width;
-      htmlMesh.element.children[0].style.height = height;
+      iframe.style.width = width;
+      iframe.style.height = height;
 
       console.log(`Width: ${width}, Height: ${height}, Depth: ${depth}`);
     } else {
@@ -840,16 +843,20 @@ function Viewport(editor) {
       // guidePosition: vector3ToCoordinate(editor.mouseHelper.guidePosition),
       rotation: vector3ToCoordinate(htmlMesh.rotation),
       scale: vector3ToCoordinate(htmlMesh.scale),
-      width: htmlMesh.element.children[0].style.width,
-      height: htmlMesh.element.children[0].style.height,
+      width: iframe.style.width,
+      height: iframe.style.height,
     };
-    htmlMesh.url = htmlMesh.element.children[0].src;
+    htmlMesh.url = iframe.src;
+    htmlMesh.width = parseFloat(userData.width) / 100;
+    htmlMesh.height = parseFloat(userData.height) / 100;
+
     htmlMesh.userData = userData;
     console.log("🚀 ~ addHtml ~ htmlMesh:", htmlMesh);
 
-    editor.execute(new AddObjectCommand(editor, htmlMesh));
+    // editor.execute(new AddObjectCommand(editor, htmlMesh));
 
     htmlScene.add(htmlMesh);
+    signals.sceneGraphChanged.dispatch();
   }
   async function addVideoAndImage(object, model, intersectPoint) {
     if (object.userData.name?.startsWith("Flat_")) {
@@ -1478,7 +1485,7 @@ function Viewport(editor) {
 
     if (
       object !== null &&
-      object !== scene &&
+      object.type !== "Scene" &&
       object !== camera &&
       !editor.enablePoint &&
       editor.enableSelect
@@ -1526,6 +1533,12 @@ function Viewport(editor) {
     }
     if (object.url && object.element) {
       object.element.children[0].src = object.url;
+    }
+    if (object.width && object.element) {
+      object.element.children[0].style.width = object.width * 100 + "px";
+    }
+    if (object.height && object.element) {
+      object.element.children[0].style.height = object.height * 100 + "px";
     }
     initPT();
     render();

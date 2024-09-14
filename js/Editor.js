@@ -122,9 +122,9 @@ function Editor() {
   this.light = _DEFAULT_LIGHT.clone();
 
   this.scene = new THREE.Scene();
-  this.htmlScene = new THREE.Scene();
   this.scene.name = "Scene";
-
+  this.htmlScene = new THREE.Scene();
+  this.htmlScene.name = "HtmlScene";
   this.sceneHelpers = new THREE.Scene();
   this.sceneHelpers.add(new THREE.HemisphereLight(0xffffff, 0x888888, 2));
 
@@ -219,6 +219,29 @@ Editor.prototype = {
     while (scene.children.length > 0) {
       this.addObject(scene.children[0]);
     }
+
+    this.signals.sceneGraphChanged.active = true;
+    this.signals.sceneGraphChanged.dispatch();
+  },
+  setHtmlScene: function (htmlScene) {
+    this.htmlScene.uuid = htmlScene.uuid;
+    this.htmlScene.name = htmlScene.name;
+
+    this.htmlScene.background = htmlScene.background;
+    this.htmlScene.environment = htmlScene.environment;
+    this.htmlScene.fog = htmlScene.fog;
+    this.htmlScene.backgroundBlurriness = htmlScene.backgroundBlurriness;
+    this.htmlScene.backgroundIntensity = htmlScene.backgroundIntensity;
+
+    this.htmlScene.userData = JSON.parse(JSON.stringify(htmlScene.userData));
+
+    // avoid render per object
+
+    this.signals.sceneGraphChanged.active = false;
+
+    htmlScene.children.forEach((element) => {
+      this.htmlScene.add(this.createHtml(element.userData));
+    });
 
     this.signals.sceneGraphChanged.active = true;
     this.signals.sceneGraphChanged.dispatch();
@@ -527,7 +550,7 @@ Editor.prototype = {
     }
     if (this.scene.getObjectById(id)) {
       this.select(this.scene.getObjectById(id));
-    } else {
+    } else if (this.htmlScene.getObjectById(id)) {
       this.select(this.htmlScene.getObjectById(id));
     }
   },
@@ -626,6 +649,9 @@ Editor.prototype = {
     if (json.scene) {
       this.setScene(await loader.parseAsync(json.scene));
     }
+    if (json.htmlScene) {
+      this.setHtmlScene(await loader.parseAsync(json.htmlScene));
+    }
 
     if (json.environment === "ModelViewer") {
       this.signals.sceneEnvironmentChanged.dispatch(json.environment);
@@ -693,6 +719,7 @@ Editor.prototype = {
       },
       camera: this.viewportCamera.toJSON(),
       scene: this.scene.toJSON(),
+      htmlScene: this.htmlScene.toJSON(),
       scripts: this.scripts,
       history: this.history.toJSON(),
       environment: environment,
@@ -738,6 +765,7 @@ Editor.prototype = {
           "project/renderer/toneMappingExposure"
         ),
       },
+      htmlScene: this.htmlScene.toJSON(),
       camera: this.viewportCamera.toJSON(),
       scripts: this.scripts,
       history: this.history.toJSON(),
@@ -843,16 +871,27 @@ Editor.prototype = {
     return textMesh;
   },
   createHtml: function (model) {
-    const { width, height, scale } = model;
+    const { width, height, scale, url, position, name, rotation } = model;
     let iframe = document.createElement("iframe");
-    iframe.src = "http://127.0.0.1:8080";
+    iframe.src = url || "http://127.0.0.1:8080";
     iframe.style.height = height;
     iframe.style.width = width;
     iframe.style.border = "none";
     let domEle = document.createElement("div");
     domEle.appendChild(iframe);
     let domEleObj = new CSS3DObject(domEle);
+    domEleObj.name = name;
     domEleObj.scale.set(scale.x, scale.y, scale.z);
+    if (position) {
+      domEleObj.position.set(position.x, position.y, position.z);
+    }
+    if (rotation) {
+      domEleObj.rotation.set(rotation.x, rotation.y, rotation.z);
+    }
+    domEleObj.userData = { ...model };
+    domEleObj.url = iframe.src;
+    domEleObj.width = parseFloat(width) / 100;
+    domEleObj.height = parseFloat(height) / 100;
     return domEleObj;
   },
   utils: {

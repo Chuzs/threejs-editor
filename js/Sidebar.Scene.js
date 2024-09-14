@@ -358,6 +358,7 @@ function SidebarScene(editor) {
   function refreshUI() {
     const camera = editor.camera;
     const scene = editor.scene;
+    const htmlScene = editor.htmlScene;
 
     const options = [];
 
@@ -381,7 +382,26 @@ function SidebarScene(editor) {
         }
       }
     })(scene.children, 0);
+    if (htmlScene.children.length > 0) {
+      options.push(buildOption(htmlScene, false));
+      (function addObjects(objects, pad) {
+        for (let i = 0, l = objects.length; i < l; i++) {
+          const object = objects[i];
 
+          if (nodeStates.has(object) === false) {
+            nodeStates.set(object, false);
+          }
+
+          const option = buildOption(object, true);
+          option.style.paddingLeft = pad * 18 + "px";
+          options.push(option);
+
+          if (nodeStates.get(object) === true) {
+            addObjects(object.children, pad + 1);
+          }
+        }
+      })(htmlScene.children, 0);
+    }
     outliner.setOptions(options);
 
     if (editor.selected !== null) {

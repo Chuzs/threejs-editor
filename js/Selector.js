@@ -13,7 +13,7 @@ class Selector {
     // signals
 
     signals.intersectionsDetected.add((intersects) => {
-      if (intersects.length > 0 && editor.editMode != "hotspot") {
+      if (intersects.length > 0) {
         const object = intersects[0].object;
 
         if (object.userData.object !== undefined) {
@@ -126,6 +126,7 @@ class Selector {
     this.editor.config.setKey("selected", uuid);
 
     this.signals.objectSelected.dispatch(object);
+    console.log(object);
   }
 
   deselect() {

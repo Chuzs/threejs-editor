@@ -602,7 +602,9 @@ select:hover {
   width: 16px;
   opacity: 0.5;
 }
-
+#controls {
+  z-index: 10000;
+}
 #viewportToolbar {
   position: absolute;
   left: 50%;
@@ -610,6 +612,7 @@ select:hover {
   top: 10px;
   display: flex;
   text-align: center;
+  z-index: 10000;
 }
 
 #viewportToolbar button.Reset img {

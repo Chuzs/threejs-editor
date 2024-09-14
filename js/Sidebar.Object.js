@@ -136,10 +136,10 @@ function SidebarObject(editor) {
   objectNameRow.add(objectName);
 
   container.add(objectNameRow);
-  // url
 
+  // url
   const objectUrlRow = new UIRow();
-  const objectUrl = new UIInput()
+  const objectUrl = new UITextArea()
     .setWidth("150px")
     .setFontSize("12px")
     .onChange(function () {
@@ -152,13 +152,53 @@ function SidebarObject(editor) {
         )
       );
     });
-
   objectUrlRow.add(
     new UIText(strings.getKey("sidebar/object/url")).setClass("Label")
   );
   objectUrlRow.add(objectUrl);
-
   container.add(objectUrlRow);
+
+  // width
+  const objectWidthRow = new UIRow();
+  const objectWidth = new UINumber()
+    .setPrecision(3)
+    .setWidth("50px")
+    .onChange(function () {
+      editor.execute(
+        new SetValueCommand(
+          editor,
+          editor.selected,
+          "width",
+          objectWidth.getValue()
+        )
+      );
+    });
+  objectWidthRow.add(
+    new UIText(strings.getKey("sidebar/object/width")).setClass("Label")
+  );
+  objectWidthRow.add(objectWidth);
+  container.add(objectWidthRow);
+
+  // height
+  const objectHeightRow = new UIRow();
+  const objectHeight = new UINumber()
+    .setPrecision(3)
+    .setWidth("50px")
+    .onChange(function () {
+      editor.execute(
+        new SetValueCommand(
+          editor,
+          editor.selected,
+          "height",
+          objectHeight.getValue()
+        )
+      );
+    });
+  objectHeightRow.add(
+    new UIText(strings.getKey("sidebar/object/height")).setClass("Label")
+  );
+  objectHeightRow.add(objectHeight);
+  container.add(objectHeightRow);
 
   // position
 
@@ -892,6 +932,9 @@ function SidebarObject(editor) {
         objectShadowNormalBiasRow,
         objectShadowRadiusRow,
       ],
+      url: objectUrlRow,
+      width: objectWidthRow,
+      height: objectHeightRow,
     };
 
     for (const property in properties) {
@@ -961,6 +1004,8 @@ function SidebarObject(editor) {
     objectUUID.setValue(object.uuid);
     objectName.setValue(object.name);
     objectUrl.setValue(object.url);
+    objectWidth.setValue(object.width);
+    objectHeight.setValue(object.height);
 
     objectPositionX.setValue(object.position.x);
     objectPositionY.setValue(object.position.y);
